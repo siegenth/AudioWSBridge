@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WebSocket Samples - Simple PathParam Endpoint</title>
+</head>
+<body>
+  <div>
+    Response message from WebSocket endpoint will contain input message from below text box and @PathParam parameter values. Please see WebSocket request
+    <br />URI in PathParamEndpoint.html and ServerEndpoint URI and @PathParams parameters declared on @OnMessage method in PathParamEndpoint java class
+    <br />
+    <br />
+    Message : <input id="inputmessage" type="text" />
+  </div>
+  <div>
+    <input type="submit" value="Send Message" onclick="send()" />
+  </div>
+  <div id="messages"></div>
+  <script language="javascript" type="text/javascript">
+    <!-- PathParamEndpoint(ServerEndpoint) uri is /SimplePathParam/rentals/{name}/{building}/{home-number}/{no-of-rooms}/{property-val}/{pets-allowed}/{maintenance-fee}-->
+    var webSocket = 
+      new WebSocket('ws://' + window.document.location.host + '/WebsocketApp/SimplePathParam/rentals/LakeViewProperties/C/111/2/299999.99/true/199.45');
+
+    webSocket.onerror = function(event) {
+      onError(event)
+    };
+
+    webSocket.onopen = function(event) {
+      onOpen(event)
+    };
+
+    webSocket.onmessage = function(event) {
+      onMessage(event)
+    };
+    
+
+    function onMessage(event) {
+      document.getElementById('messages').innerHTML 
+        += '<br />Received message: ' + event.data;
+    }
+
+    function onOpen(event) {
+      document.getElementById('messages').innerHTML 
+        = 'Connection established';
+    }
+
+    function onError(event) {
+      alert(event.data);
+    }
+
+    function send() {
+      var txt = document.getElementById('inputmessage').value;
+      webSocket.send(txt);
+      return false;
+    }
+
+    
+    
+  </script>
+</body>
+</html>
