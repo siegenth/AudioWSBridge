@@ -21,6 +21,7 @@ DEALINGS IN THE SOFTWARE.
 
   var AUDIO_WORKER_PATH =   'js/recorderjs/recorderWorker.js';
   var WS_WORKER_PATH = 'js/recorderjs/wsWorker.js';
+  var streamsCnt = 0;
 
   var Recorder = function(source, cfg){
     var config = cfg || {};
@@ -183,10 +184,10 @@ DEALINGS IN THE SOFTWARE.
       currCallback(blob);
     }
 
-
     wsWorker.onmessage = function(e){   // This is where the data is returned.
       var command = e.data;
       console.log("wsWorker.onmessage : " + command);
+      document.getElementById("StreamsCnt").value = streamsCnt++;    
       wsCallback && wsCallback(command);
     }
 
