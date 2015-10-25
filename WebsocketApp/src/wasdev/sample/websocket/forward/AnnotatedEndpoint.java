@@ -59,7 +59,10 @@ public class AnnotatedEndpoint {
 
         try {
             count++;
-            System.out.println(message);
+            if ((count % 10) == 0) {
+            	System.out.println("count:" + count + " message length:" + message.length() + "@AnnotatedEndPoint.reciveMessage");
+            }
+            
             if (message.toLowerCase().equals("stop")) { // TODO - remove , it's from the original application. 
             	// send a WebSocket message back to the other endpoint that says we will stop.
                 currentSession.getBasicRemote().sendText("OK. AnnotatedEndpoint stop.");

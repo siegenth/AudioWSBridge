@@ -114,21 +114,14 @@ function transmit(fullBuffer) {
  */
 
 function transmitAudioBytes(audioBlob) {
-  var myReader = new FileReaderSync();
-  myReader.addEventListener("loadend", function(e) {
-    //console.log(e.srcElement.result);
-    var arrayBuffer = e.target.result;
-    // TODO - move DataView into worker thread
-    var binaryData = buildMessage("DATA", "");
-    var view = new DataView(arrayBuffer);
-    var viewLen = view.byteLength;
-    // TODO - move convert into the worker thread.
-    for (var i = 0; i < viewLen; binaryData += ("00" + view.getUint8(i++).toString(16)).substr(-2).toUpperCase());
-    console.log("socketSend@main " + binaryData.length);
-    wsSnd.send(binaryData);
-  });
-  myReader.readAsArrayBuffer(audioBlob);
-  //myReader.readAsBinaryString(sendBlob);
+  var myReader = new FileReaderSync();  // TODO -  Firefox does not support FileReader()
+  var arrayBuffer = myReader.readAsArrayBuffer(audioBlob);
+  var binaryData = buildMessage("DATA", "");
+  var view = new DataView(arrayBuffer);
+  var viewLen = view.byteLength;
+  for (var i = 0; i < viewLen; binaryData += ("00" + view.getUint8(i++).toString(16)).substr(-2).toUpperCase());
+  console.log("socketSend@main " + binaryData.length);
+  wsSnd.send(binaryData);
 }
 
 

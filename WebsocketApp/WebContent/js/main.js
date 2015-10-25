@@ -75,6 +75,7 @@ function doneEncoding( blob ) {
 }
 
 // TODO : remove this, you only need the socketSend() from the web page.
+//        already removed the entry that invoked this from .html
 function toggleSaveAs( e ) {
     if (saveAs == "file") {
         saveAs = "socket";
