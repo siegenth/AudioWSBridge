@@ -69,7 +69,7 @@ DEALINGS IN THE SOFTWARE.
       currCallback, wsCallback;
 
     this.node.onaudioprocess = function(e){
-      if (!recording) return;
+   //   if (!recording) return;
       if (wsTransmitting) {
 //        console.log("recording:" + e.inputBuffer.getChannelData(0).length)
         wsWorker.postMessage({

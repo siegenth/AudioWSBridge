@@ -60,7 +60,7 @@ public class AnnotatedEndpoint {
         try {
             count++;
             if ((count % 10) == 0) {
-            	System.out.println("count:" + count + " message length:" + message.length() + "@AnnotatedEndPoint.reciveMessage");
+            	System.out.println("count:" + count + " message length:" + message.length() + ":" + message.substring(0,Math.min(10, message.length())) + "@AnnotatedEndPoint.reciveMessage");
             }
             
             if (message.toLowerCase().equals("stop")) { // TODO - remove , it's from the original application. 
