@@ -36,9 +36,18 @@ import javax.websocket.server.ServerEndpoint;
 // JavaScript to access from a WebSocket capable browser would be:  ws://<Host Name>:<port>/<Context-Root>/SimpleAnnotated
 @ServerEndpoint(value = "/Forward")
 public class AnnotatedEndpoint {
+
+	private static final String STOP = "STOP";
+	private static final String START = "START";	
+	private static final String SEPARATOR = "#";
+	private static final int ID = 1;
+	private static final int COMMAND = 2;
+	private static final int DATA = 3;	
+	private static final int SAMPLECOUNT = 10;
+	
     Session currentSession = null;
     int count = 0;
-    ClientWebSocket cws = null;
+    ClientWebSocket clientWebSocket = null;
     String uriString = null;
 //    String uriString = "ws://169.55.246.102:8086"; // TODO IP address needs be a configuration parameter    
     // OnOpen will get called by WebSockets when the connection has been established successfully using WebSocket handshaking with
@@ -47,8 +56,8 @@ public class AnnotatedEndpoint {
     public void onOpen(Session session, EndpointConfig ec) {
     	// Store the WebSocket session for later use.
         currentSession = session;
-        cws = new ClientWebSocket(uriString);
-        cws.pause();
+        clientWebSocket = new ClientWebSocket(uriString);
+        clientWebSocket.pause();
     }
 
     // using the OnMessage annotation for this method will cause this method to get called by WebSockets when this connection has received 
@@ -59,47 +68,45 @@ public class AnnotatedEndpoint {
 
         try {
             count++;
-            if ((count % 10) == 0) {
-            	System.out.println("count:" + count + " message length:" + message.length() + ":" + message.substring(0,Math.min(10, message.length())) + "@AnnotatedEndPoint.reciveMessage");
+            if ((count % SAMPLECOUNT) == 0) {
+            	System.out.println("count:" + count + " message length:" + message.length() + ":" + message.substring(0,Math.min(30, message.length())) + "@AnnotatedEndPoint.reciveMessage");
             }
             
-            if (message.toLowerCase().equals("stop")) { // TODO - remove , it's from the original application. 
-            	// send a WebSocket message back to the other endpoint that says we will stop.
-                currentSession.getBasicRemote().sendText("OK. AnnotatedEndpoint stop.");
-
-                // Sleep to let the other side get the message before stopping - a bit kludgy, but this is just a sample!
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                }
-                currentSession.close();
-
-            } else {	
+        		String[] messageParts = message.split(SEPARATOR);            	
             	if (uriString == null) {
-        			// looking for IP to connect to.  
-            		if ("START".equals(message.split("#")[2])) {
-            			uriString = message.split("#")[3];            		            	            		                	
+        			// looking for IP to connect to.
+            		if (START.equals(messageParts[COMMAND])) {
+            			uriString = messageParts[DATA];            		            	            		                	
             		} else {
-            			return;   // NOTE - we are e not message being sen 
+            			return;   // NOTE - we are not message being sent 
             		}
             	}
                 // send the message back to the other side with the iteration count.  Notice we can send multiple message without having
                 // to receive messages in between.            	
-            	if (cws == null) {
+            	if (clientWebSocket == null) {
             		if (uriString == null) {
             			return; // we do not have a connection. 
             		}
             		System.out.println(uriString + "@AnnotatedEndpoint");
-            		cws = new ClientWebSocket(uriString);
-            		cws.pause();
+            		clientWebSocket = new ClientWebSocket(uriString);
+            		if (!clientWebSocket.ready()) {
+            			System.err.println("Failed to connect to :  + uriString");
+            			clientWebSocket = null;
+            			uriString = null;
+            		}
             	}
-            	cws.send(message);
-            	
+            	clientWebSocket.send(message);
                 currentSession.getBasicRemote().sendText("From: " + this.getClass().getSimpleName() + "  Iteration count: " + count);
-                currentSession.getBasicRemote().sendText(message);
-            }
+                currentSession.getBasicRemote().sendText(message);  
 
+            	if ((STOP.equals(messageParts[COMMAND]))) {
+                    currentSession.getBasicRemote().sendText("OK. AnnotatedEndpoint stop.");
+                    clientWebSocket.shut();  // do not return until done.
+                    uriString = null;
+                    clientWebSocket = null;
+            	}            	
         } catch (IOException ex) {
+        	System.err.println(ex.getMessage());
             // no error processing will be done for this sample
         }
 

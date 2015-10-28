@@ -19,12 +19,12 @@ class ClientSocket extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshake) {
-        System.out.println("opened connection@ClientSocket");
+        System.out.println("onOpen@ClientSocket");
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        System.out.println("closed connection@ClientSocket");
+        System.out.println("onClose@ClientSocket");
     }
 
     @Override
