@@ -18,7 +18,7 @@
  * All Rights Reserved. Licensed Materials - Property of IBM.
  */
 
-package wasdev.sample.websocket.annotated;
+package wasdev.sample.websocket.annotated.kill;
 
 import java.io.IOException;
 

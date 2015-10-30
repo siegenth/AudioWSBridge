@@ -1,30 +1,33 @@
-package wasdev.sample.websocket.forward;
+package wasdev.sample.websocket.backward;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 
 class ClientSocket extends WebSocketClient {
-
-    ClientSocket(URI uri) {
+	BackwardResponse backwardResponse;
+    ClientSocket(URI uri, BackwardResponse backwardResponse) {
+		
         super(uri);
+        this.backwardResponse = backwardResponse;        
         this.connect();
-        System.out.println("connected@ClientSocket-forward");
+        System.out.println("connected@ClientSocket--backward:");
     }
 
     @Override
     public void onMessage(String message) {
-        System.out.println("onMessage@ClientSocket:-forward" + message);
+    	backwardResponse.responseFromStreams(message);
+        System.out.println("onMessage@ClientSocket-backward:" + message);
     }
 
     @Override
     public void onOpen(ServerHandshake handshake) {
-        System.out.println("onOpen@ClientSocket-forward");
+        System.out.println("onOpen@ClientSocket-backward:");
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        System.out.println("onClose@ClientSocket-forward");
+        System.out.println("onClose@ClientSocket-backward:");
     }
 
     @Override

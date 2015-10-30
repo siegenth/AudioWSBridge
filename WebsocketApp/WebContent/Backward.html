@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Streams/Audio Test</title>
+	<script>
+	function setupDefaults() {
+		// IP address of Streams we are connecting to. 		 
+		document.getElementById("ipaddress").value =  "172.16.49.152:8087";
+	}
+	</script>
+</head>
+<body onload="setupDefaults()">
+  <p />
+  <p>
+  Inject a test message to Streams, the format of the message should be: <br> 
+  #id#command#data.
+  <br>
+  #xxx#STOP#data    - this will close the file.  
+    </p>
+
+    If you go into the code you can set the path for the WS '/WebsocketApp/DecodeEncodeForward, /WebsocketApp/Forward and /Forward/rentals/.... ??
+<div>
+    IP:<input id="ipaddress" type="text"></input>
+    Set before first send....
+  </div>  
+    
+  <div>
+    <br>
+    Message: <input id="inputmessage" type="text" width="30"/>
+    <br>    
+    <br>        
+  </div>
+  <div>
+    ReadyState:<input id="readystate" type="text" disabled />
+    <ul>
+			<li>   '': unattempted (Send)</li>
+			<li>0 : connecting (Send Again)</li>
+			<li>1 : open</li>
+			<li>2 : closing</li>
+			<li>3 : closed</li>
+		</ul>
+    
+  </div>  
+    <div>
+   
+    <input type="submit" value="Send Message" onclick="send()" />
+  </div>
+  Response Message:<br>
+  <div id="messages"></div>
+  <div>
+  <br><br>
+  Look at the logs on Streams to see what the effect of this is.....
+  </div>
+  
+  
+  <script language="javascript" type="text/javascript">
+    if(!("WebSocket" in window)) {
+		alert("WebSocket NOT supported by your Browser!");    	
+    }
+    var ip = window.document.location.host 
+    ip = "172.16.49.152:8087";
+    var webSocket;
+    function connect(ip) {
+	
+      	webSocket = new WebSocket('ws://' + ip + '/WebsocketApp/Backward');
+    	webSocket.onerror = function(event) {
+	      onError(event)
+    	};
+
+	    webSocket.onopen = function(event) {
+      		onOpen(event)
+	    };
+
+	    webSocket.onmessage = function(event) {
+      		onMessage(event)
+	    };
+    
+	    function onMessage(event) {
+      		document.getElementById('messages').innerHTML 
+	        += '<br />' + event.data;
+    	}
+
+	    function onOpen(event) {
+	      	document.getElementById('messages').innerHTML 
+	        	= 'Connection established to:' + webSocket.url;
+        }
+
+	    function onError(event) {
+      		alert(event.data);
+	    }
+    }
+
+    function send() {
+      if (!webSocket) {
+      	connect(document.getElementById("ipaddress").value);
+      }
+      document.getElementById("readystate").value = webSocket.readyState;       
+      if (webSocket.readyState != 1) {
+      	return;
+      }
+      var txt = document.getElementById('inputmessage').value;
+      webSocket.send(txt);
+      return false;
+    }
+
+    
+    
+  </script>
+</body>
+</html>
