@@ -5,9 +5,8 @@
     - Streams live data out, one buffer at time.
 
 */
-// TODO * need to state what type of data is being sent.
-// TODO * init should have type - and any other constant
-// TODO * we have two flavors of control, not good. It starts with '<' or with a '#'.
+// TODO - need to state what type of data is being sent.
+// TODO - init should have type - and any other constant
 
 var recLength = 0,
     recBuffersL = [],
@@ -114,7 +113,7 @@ function transmit(fullBuffer) {
  */
 
 function transmitAudioBytes(audioBlob) {
-  var myReader = new FileReaderSync();  // TODO -  Firefox does not support FileReader()
+  var myReader = new FileReaderSync();  // FIX -  Firefox does not support FileReader()
   var arrayBuffer = myReader.readAsArrayBuffer(audioBlob);
   var binaryData = buildMessage("DATA", "");
   var view = new DataView(arrayBuffer);

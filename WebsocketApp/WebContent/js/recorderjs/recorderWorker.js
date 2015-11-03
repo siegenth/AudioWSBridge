@@ -138,7 +138,7 @@ function writeString(view, offset, string){
   function encodeWAV(samples, mono){
   var buffer = new ArrayBuffer(44 + samples.length * 2);
   var view = new DataView(buffer);
-
+  console.log("sampleRate:" + sampleRate);
   /* RIFF identifier */
   writeString(view, 0, 'RIFF');
   /* file length */

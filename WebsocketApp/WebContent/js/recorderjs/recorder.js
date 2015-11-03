@@ -23,9 +23,11 @@ DEALINGS IN THE SOFTWARE.
   var WS_WORKER_PATH = 'js/recorderjs/wsWorker.js';
   var streamsCnt = 0;
 
+  // DOC ! set the size of the collection buffer, and transmission buffer.  
   var Recorder = function(source, cfg){
-    var config = cfg || {};
-    var bufferLen = config.bufferLen || 4096;
+    var config = cfg || {};    
+    var bufferLen = config.bufferLen || 4096;  
+
     this.context = source.context;
     if(!this.context.createScriptProcessor){
        this.node = this.context.createJavaScriptNode(bufferLen, 2, 2);
@@ -34,7 +36,6 @@ DEALINGS IN THE SOFTWARE.
     }
 
     // Setup WS thread'
-    // TODO get the IP address from web context, Voci does this
     var wsWorker ;
     if ("WebSocket" in window) {
        var nodePort;                  // not debugging IP
@@ -52,7 +53,8 @@ DEALINGS IN THE SOFTWARE.
           url: webSocketForwarderUrl,
           senderId: SessionId,
           audioType: "audio/wav",
-          chunkSize: 1000
+          // TODO - Is this used, remove it if not - this is NOT where the size of the buffer is set.          
+          chunkSize: 2000  
         }
       });
       console.log("setup wsWorker");
@@ -69,9 +71,8 @@ DEALINGS IN THE SOFTWARE.
       currCallback, wsCallback;
 
     this.node.onaudioprocess = function(e){
-   //   if (!recording) return;
       if (wsTransmitting) {
-//        console.log("recording:" + e.inputBuffer.getChannelData(0).length)
+       console.log("recording:" + e.inputBuffer.getChannelData(0).length)
         wsWorker.postMessage({
           command: "chunk",
           chunkBuffer: [e.inputBuffer.getChannelData(0)]
@@ -183,11 +184,15 @@ DEALINGS IN THE SOFTWARE.
       var blob = e.data;
       currCallback(blob);
     }
-
+    var t0 = 0;
+    var t1 = 0;
     wsWorker.onmessage = function(e){   // This is where the data is returned.
       var command = e.data;
       console.log("wsWorker.onmessage : " + command);
       document.getElementById("StreamsCnt").value = streamsCnt++;    
+      document.getElementById("StreamsMilliDelta").value = t1 - t0;
+      t0 = t1;
+      t1 = performance.now();          
       wsCallback && wsCallback(command);
     }
 

@@ -44,8 +44,8 @@ public class AnnotatedEndpoint implements BackwardResponse {
 	private static final int COMMAND = 2;
 	private static final int DATA = 3;	
 	private static final int SAMPLECOUNT = 10;
-	 // TODO * This has not been thought through enough, messages going back to the client.
-	 // TODO * use null on clientWebSocket as test?
+	 // TODO - This has not been thought through enough, messages going back to the client.
+	 // TODO - use null on clientWebSocket as test?
 	boolean streamsSessionOpen = false; 
 	
     Session currentSession = null;

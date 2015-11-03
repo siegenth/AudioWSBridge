@@ -28,7 +28,7 @@ var saveAs = "file";
 var sendBlob = "";
 
 
-/* TODO: overview
+/* DOC - overview
  * Ootion mono/stereo
  * Option disk/socket
    * Field for node/port
@@ -48,24 +48,21 @@ function saveAudio() {
     // audioRecorder.exportWAV(doneEncoding);
 }
 
-/*
-*
- */
 
+/**
+ * Draw the data that that has been received.
+ */
 function gotBuffers( buffers ) {
     var canvas = document.getElementById( "wavedisplay" );
-
     drawBuffer( canvas.width, canvas.height, canvas.getContext('2d'), buffers[0] );
-
     // the ONLY time gotBuffers is called is right after a new recording is completed - 
     // so here's where we should set up the download.
     audioRecorder.exportMonoWAV( doneEncoding );
 }
 
-
 function doneEncoding( blob ) {
     // setup the filename of the file that will be downloaded (saved).
-    // TODO * blob is what we want to send to the sebsockets - or part of it...
+    // TODO  - blob is what we want to send to the websockets - or part of it...
     console.log(blob.get);
     sendBlob = blob.slice();
     console.log("blob:" + blob.size);
@@ -85,7 +82,10 @@ function toggleSaveAs( e ) {
     e.text = saveAs;
     console.log("New saveAs:" + saveAs);
 }
-
+/**
+ * From the UI, turn the recording on/off. 
+ * @param e
+ */
 
 function toggleRecording( e ) {
     if (e.classList.contains("recording")) {
@@ -103,7 +103,7 @@ function toggleRecording( e ) {
     }
 }
 /**
- * Turn on and off the sending of data to Streams.
+ * From UI, off the sending of data to Streams.
  *
  * @param e
  */
@@ -120,6 +120,25 @@ function toggleStreams( e ) {
         e.classList.add("recording");
 //        audioRecorder.clear();
         audioRecorder.wsStartChunking();
+    }
+}
+function toggleAudioYes( e ) {
+    if (e.classList.contains("recording")) {
+        // stop recording
+    	oscillator = context.createOscillator(); // Create sound source
+    	
+    	oscillator.connect(context.destination); // Connect sound to output
+    	oscillator.start(0); // Play instantly
+        e.classList.remove("recording");
+//        audioRecorder.getBuffers( gotBuffers );
+    } else {
+        // start recording
+    	oscillator = context.createOscillator(); // Create sound source
+    	oscillator.connect(context.destination); // Connect sound to output
+    	oscillator.start(0); // Play instantly
+        e.classList.add("recording");
+//        audioRecorder.clear();
+        //audioRecorder.wsStartChunking();
     }
 }
 
@@ -226,6 +245,14 @@ function toggleMono() {
     audioInput.connect(inputPoint);
 }
 
+/**
+ * Setting up the audio.
+ 
+ * 
+ * @param stream
+ */
+
+// DOC ! sampleRate fetched here: inputPoint.context.sampleRate.  
 function gotStream(stream) {
     inputPoint = audioContext.createGain();
 
@@ -237,11 +264,10 @@ function gotStream(stream) {
 //    audioInput = convertToMono( input );
 
     analyserNode = audioContext.createAnalyser();
-    analyserNode.fftSize = 2048;
+    // DOC Size of the FFT sample
+    analyserNode.fftSize = 4096;
     inputPoint.connect( analyserNode );
     
-    //SessionId = Window.document.getElementById("StreamID").value;       
-    //NodePort = Window.document.getElementById("StreamsIP").value;      
     audioRecorder = new Recorder( inputPoint );
 
     zeroGain = audioContext.createGain();
@@ -250,15 +276,20 @@ function gotStream(stream) {
     zeroGain.connect( audioContext.destination );
     updateAnalysers();
 }
+/**
+ * Start up when the page loads, setup the environment. 
+ * Ask the user permission to use the audio facility.  
+ *
+ */
 
 function initAudio() {
         if (!navigator.getUserMedia)
             navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
         if (!navigator.cancelAnimationFrame)
             navigator.cancelAnimationFrame = navigator.webkitCancelAnimationFrame || navigator.mozCancelAnimationFrame;
-        if (!navigator.requestAnimationFrame)
+        if (!navigator.equestAnimationFrame)
             navigator.requestAnimationFrame = navigator.webkitRequestAnimationFrame || navigator.mozRequestAnimationFrame;
-
+    // DOC ? clarify parameters are being used. 
     navigator.getUserMedia(
         {
             "audio": {

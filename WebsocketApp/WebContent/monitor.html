@@ -63,7 +63,9 @@ function hexStrToInt16(hexStr) {
 
 // User has selected the link, they want to see the data from server. 
 //    - connect up to server
-//    - data flows in via the onmessage. 
+//    - data flows in via the onmessage.
+var t1 = 0
+var t0 = 0 
 function StartWebSocket()
 {
     if ("WebSocket" in window)
@@ -97,6 +99,10 @@ function StartWebSocket()
 		    var tuple = json_msg.tuples[0].tuple;
             // write text into document
 	    	document.getElementById("SessID").innerHTML = tuple.id +":" + tuple.sample;
+	    	var t1 = performance.now();
+	    	document.getElementById("TimerID").innerHTML = t1 - t0;
+	    	t0 = t1;
+	    		    	
             //console.log(tuple.id + "#" + tuple.signalData.length + " " + tuple.signalData.slice(0,20));
             //var waveForm = hexStrToInt16(tuple.signalData);
 
@@ -143,8 +149,8 @@ function startUp() {
 
     // nodeName = (ip.split(":") == 1) ? "ws://" + ip : ip.split(":")[0] + ":" + portID;
     document.getElementById("formWS").value = location.host;
-    //document.getElementById("formWS_Streams").value = "ws://" + "172.16.49.152:8087";  // FIX IP FIXIP
-    document.getElementById("formWS_Streams").value = "ws://" + "169.55.246.122:8087";  // FIX IP FIXIP    
+    document.getElementById("formWS_Streams").value = "ws://" + "172.16.49.152:8087";  // FIX IP FIXIP
+    //document.getElementById("formWS_Streams").value = "ws://" + "169.55.246.122:8087";  // FIX IP FIXIP    
 
     smoothieSmall = new SmoothieChart({maxValue:2,minValue:-0.1});
     smoothieSmall.streamTo(document.getElementById("mycanvasSmall"));
@@ -185,6 +191,7 @@ window.onload = function() {startUp();}
 
 <h3>Standard messages:</h3>
 <h2>Data from ID: <span id="SessID"></span></h2>
+<h4>Delta Time (millisecond) : <span id="TimerID"></span></h4>
 <br>
     <canvas id="mycanvasSmall" width="300" height="Med"></canvas>
 <!--
