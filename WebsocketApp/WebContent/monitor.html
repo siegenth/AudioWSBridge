@@ -29,7 +29,7 @@ var ColorW = new Array('#FF0000','#FFFF00','#00FF00',
                        '#0000FF','#CC3300','#00FFFF',
                        '#FF00FF','#0F770F','#FFFFFF');
 var wCnt = 0;
-var smoothieSmall;
+var smoothieSml;
 var smoothieMed;
 var smoothieBig;
 
@@ -98,34 +98,36 @@ function StartWebSocket()
 
 		    var tuple = json_msg.tuples[0].tuple;
             // write text into document
-	    	document.getElementById("SessID").innerHTML = tuple.id +":" + tuple.sample;
+	    	document.getElementById("SessID").innerHTML = tuple.id +":" + tuple.tile3;
 	    	var t1 = performance.now();
 	    	document.getElementById("TimerID").innerHTML = t1 - t0;
 	    	t0 = t1;
-	    		    	
+	    	    	
             //console.log(tuple.id + "#" + tuple.signalData.length + " " + tuple.signalData.slice(0,20));
             //var waveForm = hexStrToInt16(tuple.signalData);
-
-            // write into graph
-	        if (!RenderData.hasOwnProperty(tuple.id) ) { // new entry 
+			// New entry 
+	        if (!RenderData.hasOwnProperty(tuple.id) ) {
 				RenderData[tuple.id] = new Object();
-				RenderData[tuple.id].connectsSmall = new TimeSeries();
+				RenderData[tuple.id].connectsSml = new TimeSeries();
 				RenderData[tuple.id].connectsMed = new TimeSeries();
 				RenderData[tuple.id].connectsBig = new TimeSeries();
 				RenderData[tuple.id].index = wCnt % ColorW.length;
-				smoothieSmall.addTimeSeries(RenderData[tuple.id].connectsSmall, 
+				smoothieSml.addTimeSeries(RenderData[tuple.id].connectsSml, 
 	                          { strokeStyle:ColorW[RenderData[tuple.id].index] });
-//				smoothieMed.addTimeSeries(RenderData[tuple.id].connectsMed,
-//                              { strokeStyle:ColorW[RenderData[tuple.id].index] });
-//				smoothieBig.addTimeSeries(RenderData[tuple.id].connectsBig,
-//                              { strokeStyle:ColorW[RenderData[tuple.id].index] });
+				smoothieMed.addTimeSeries(RenderData[tuple.id].connectsMed,
+                              { strokeStyle:ColorW[RenderData[tuple.id].index] });
+				smoothieBig.addTimeSeries(RenderData[tuple.id].connectsBig,
+                              { strokeStyle:ColorW[RenderData[tuple.id].index] });                             
 				wCnt++;
         	}
+            // write into graph        	
 	    	var idxStr = (RenderData[tuple.id].index).toString();
-		    document.getElementById("devId" + idxStr).innerHTML = tuple.id +"<br>"; ;
-            RenderData[tuple.id].connectsSmall.append(new Date().getTime(), tuple.sample);
-
-
+		    document.getElementById("devId" + idxStr).innerHTML = tuple.id +"<br>";
+		    // Update the graphs
+            RenderData[tuple.id].connectsSml.append(new Date().getTime(), tuple.tile1);
+            RenderData[tuple.id].connectsMed.append(new Date().getTime(), tuple.tile2);
+            RenderData[tuple.id].connectsBig.append(new Date().getTime(), tuple.tile3);
+            
 		}
      };
      ws.onclose = function()  { 
@@ -149,15 +151,15 @@ function startUp() {
 
     // nodeName = (ip.split(":") == 1) ? "ws://" + ip : ip.split(":")[0] + ":" + portID;
     document.getElementById("formWS").value = location.host;
-    document.getElementById("formWS_Streams").value = "ws://" + "172.16.49.152:8087";  // FIX IP FIXIP
+    document.getElementById("formWS_Streams").value = "ws://" + "172.16.49.152:8087";  // vm FIX IP FIXIP
     //document.getElementById("formWS_Streams").value = "ws://" + "169.55.246.122:8087";  // FIX IP FIXIP    
 
-    smoothieSmall = new SmoothieChart({maxValue:2,minValue:-0.1});
-    smoothieSmall.streamTo(document.getElementById("mycanvasSmall"));
-//    smoothieMed = new SmoothieChart({maxValue:90,minValue:-90});
-//    smoothieMed.streamTo(document.getElementById("mycanvasMed"));
-//    smoothieBig = new SmoothieChart({maxValue:200,minValue:-200});
-//    smoothieBig.streamTo(document.getElementById("mycanvasBig"));
+    smoothieSml = new SmoothieChart({maxValue:2,minValue:-0.1});
+    smoothieSml.streamTo(document.getElementById("mycanvasSmall"));
+    smoothieMed = new SmoothieChart({maxValue:2,minValue:-0.1});
+    smoothieMed.streamTo(document.getElementById("mycanvasMed"));
+    smoothieBig = new SmoothieChart({maxValue:2,minValue:-0.1});
+    smoothieBig.streamTo(document.getElementById("mycanvasBig"));
 }
 window.onload = function() {startUp();}
 </script>
@@ -194,12 +196,12 @@ window.onload = function() {startUp();}
 <h4>Delta Time (millisecond) : <span id="TimerID"></span></h4>
 <br>
     <canvas id="mycanvasSmall" width="300" height="Med"></canvas>
-<!--
+
 <br>
     <canvas id="mycanvasMed" width="300" height="Med"></canvas>
 <br>
     <canvas id="mycanvasBig" width="300" height="Med"></canvas>
-    -->
+
 <br>
 <a href="http://smoothiecharts.org">smoothiecharts</a>
 
