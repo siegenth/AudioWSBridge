@@ -189,7 +189,7 @@ DEALINGS IN THE SOFTWARE.
     wsWorker.onmessage = function(e){   // This is where the data is returned.
       var command = e.data;
       console.log("wsWorker.onmessage : " + command);
-      document.getElementById("StreamsCnt").value = streamsCnt++;    
+      document.getElementById("StreamsCnt").value = streamsCnt++ + ":" + command;    
       document.getElementById("StreamsMilliDelta").value = t1 - t0;
       t0 = t1;
       t1 = performance.now();          
