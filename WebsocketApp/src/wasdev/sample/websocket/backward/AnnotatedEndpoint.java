@@ -95,9 +95,11 @@ public class AnnotatedEndpoint implements BackwardResponse {
             		System.out.println(uriString + "@AnnotatedEndpoint");
             		clientWebSocket = new ClientWebSocket(uriString, this);
             		if (!clientWebSocket.ready()) {
-            			System.err.println("Failed to connect to :  + uriString");
+            			// DOC - We are not connected, put up a message. 
+            			System.err.println("Failed to connect to : " + uriString);
             			clientWebSocket = null;
             			uriString = null;
+                		streamsSessionOpen = false;            			
             			return;
             		}
             		streamsSessionOpen = true;
