@@ -122,27 +122,6 @@ function toggleStreams( e ) {
         audioRecorder.wsStartChunking();
     }
 }
-function toggleAudioYes( e ) {
-    if (e.classList.contains("recording")) {
-        // stop recording
-    	oscillator = context.createOscillator(); // Create sound source
-    	
-    	oscillator.connect(context.destination); // Connect sound to output
-    	oscillator.start(0); // Play instantly
-        e.classList.remove("recording");
-//        audioRecorder.getBuffers( gotBuffers );
-    } else {
-        // start recording
-    	oscillator = context.createOscillator(); // Create sound source
-    	oscillator.connect(context.destination); // Connect sound to output
-    	oscillator.start(0); // Play instantly
-        e.classList.add("recording");
-//        audioRecorder.clear();
-        //audioRecorder.wsStartChunking();
-    }
-}
-
-
 
 /**
  * Send the captured audio down the socket interface.

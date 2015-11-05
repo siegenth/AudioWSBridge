@@ -76,7 +76,7 @@ function transmitCommand(command, message) {
 	wsSnd.send(buildMessage(command, message));
 }
 
-// TODO Send header state what we are sending - this may need the size
+// TODO Send header state what we are sending - 
 function transmit(fullBuffer) {
 	wsSnd.send("<DATALENGTH>" + fullBuffer.length + "</DATALENGTH>");
 	var siz = 2048;

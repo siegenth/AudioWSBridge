@@ -1,115 +1,146 @@
 <!doctype html>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<title>Audio Recorder - </title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audio Recorder -</title>
 
-	<script src="js/audiodisplay.js"></script>
-	<script src="js/recorderjs/recorder.js"></script>
-	<script src="js/main.js"></script>
-	<style>
-	html { overflow: hidden; }
-	body { 
-		font: 14pt Arial, sans-serif; 
-		background: lightgrey;
-		display: flex;
-		flex-direction: column;
-		height: 100vh;
-		width: 100%;
-		margin: 0 0;
-	}
-	canvas { 
-		display: inline-block; 
-		background: #202020; 
-		width: 95%;
-		height: 45%;
-		box-shadow: 0px 0px 10px blue;
+<script src="js/audiodisplay.js"></script>
+<script src="js/recorderjs/recorder.js"></script>
+<script src="js/main.js"></script>
+<link rel="stylesheet" href="support.css" type="text/css"></link>
+<style>
+html {
+	overflow: hidden;
+}
+
+body {
+	font: 14pt Arial, sans-serif;
+	background: lightgrey;
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	width: 100%;
+	margin: 0 0;
+}
+
+canvas {
+	display: inline-block;
+	background: #202020;
+	width: 95%;
+	height: 45%;
+	box-shadow: 0px 0px 10px blue;
+}
+
+#controls {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-around;
+	height: 20%;
+	width: 100%;
+}
+
+#record {
+	height: 15vh;
+}
+
+#record.recording {
+	background: red;
+	background: -webkit-radial-gradient(center, ellipse cover, #ff0000 0%, lightgrey 75%
+		, lightgrey 100%, #7db9e8 100%);
+	background: -moz-radial-gradient(center, ellipse cover, #ff0000 0%, lightgrey 75%,
+		lightgrey 100%, #7db9e8 100%);
+	background: radial-gradient(center, ellipse cover, #ff0000 0%, lightgrey 75%,
+		lightgrey 100%, #7db9e8 100%);
+}
+
+#save, #save img {
+	height: 10vh;
+}
+
+#save {
+	opacity: 0.25;
+}
+
+#save[download] {
+	opacity: 1;
+}
+
+#viz {
+	height: 80%;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	align-items: center;
+}
+
+@media ( orientation : landscape) {
+	body {
+		flex-direction: row;
 	}
 	#controls {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		justify-content: space-around;
-		height: 20%;
-		width: 100%;
-	}
-	#record { height: 15vh; }
-	#record.recording { 
-		background: red;
-		background: -webkit-radial-gradient(center, ellipse cover, #ff0000 0%,lightgrey 75%,lightgrey 100%,#7db9e8 100%); 
-		background: -moz-radial-gradient(center, ellipse cover, #ff0000 0%,lightgrey 75%,lightgrey 100%,#7db9e8 100%); 
-		background: radial-gradient(center, ellipse cover, #ff0000 0%,lightgrey 75%,lightgrey 100%,#7db9e8 100%); 
-	}
-	#save, #save img { height: 10vh; }
-	#save { opacity: 0.25;}
-	#save[download] { opacity: 1;}
-
-
-	#viz {
-		height: 80%;
-		width: 100%;
-		display: flex;
 		flex-direction: column;
-		justify-content: space-around;
-		align-items: center;
+		height: 50%;
+		width: 10%;
 	}
-	@media (orientation: landscape) {
-		body { flex-direction: row;}
-		#controls { flex-direction: column; height: 100%; width: 10%;}
-		#viz { height: 100%; width: 90%;}
+	#viz {
+		height: 50%;
+		width: 45%;
 	}
-
-	</style>
+}
+</style>
+	<script>
+		function setupDefaults() {
+			// IP address of Streams we are connecting to - FIX IP FIXIP 		 
+			document.getElementById("StreamsIP").value = "ws://172.16.49.152:8086"; // internal	FIX IP FIXIP 		  
+			//document.getElementById("StreamsIP").value =  "ws://169.55.142.238:8086"; // external	FIX IP FIXIP 
+			//document.getElementById("StreamsIP").value =  "ws://169.55.246.122:8086"; // external - FIX IP FIXIP 		 	
+			//(!location.host) ? "FILL IN" : location.host;
+			document.getElementById("StreamsID").value = "USER_"
+					+ Math.ceil(Math.random() * 100);
+			SessionId = document.getElementById("StreamsID").value;
+			SessionIP = document.getElementById("StreamsIP").value;
+		}
+	</script>
 </head>
 <body onload="setupDefaults()">
+<div id="controls">
+
+	<table border="1">
+		<tr>
+			<td>Streams IP:<input type="text" id="StreamsIP"></td>
+		</tr>
+		<tr>
+			<td>Session ID:<input type="text" id="StreamsID"></td>
+		</tr>
+			<tr>
+				<td><a id="record" onclick="toggleStreams(this);">Transmit
+						to Streams</a></td>
+			</tr>		
+		<tr>
+			<td># Transmits:<input type="text" id="StreamsCnt"></td>
+		</tr>
+		<tr>
+			<td>Delta Millisecond:<input type="text" id="StreamsMilliDelta"></td>
+		</tr>
+	</table>
+</div>
+
+
 	<div id="viz">
 		<canvas id="analyser" width="1024" height="500"></canvas>
 		<canvas id="wavedisplay" width="1024" height="500"></canvas>
 	</div>
-
 	<div id="controls">
 		<table border="1">
 			<tr>
-				<td><a id="record" onclick="toggleRecording(this);">Capture</a></td>
+				<td><a id="record" onclick="toggleRecording(this);">Capture Audio</a></td>
 			</tr>
 			<tr>
-				<td><a id="record" onclick="toggleStreams(this);">To Streams</a></td>
+				<td><a id="save" href="#">Write Captured Audio</a></td>
 			</tr>
-			<tr>
-				<td><a id="audioYes" onclick="toggleAudioYes(this);">Vote Yes</a></td>
-			</tr>			
-			<tr>
-				<td><a id="audioNo" onclick="toggleAudioNo(this);">Vote No</a></td>
-			</tr>						
-			<tr>
-				<td>
-					<a id="save" href="#">Write Captured Audio</a>
-				</td>
-			</tr>
-
-		</tr>
 		</table>
-	<br/>
-	<table border="1">
-	<tr><td>Streams IP:<input type="text" id="StreamsIP"></td></tr>	
-	<tr><td>Session ID:<input type="text" id="StreamsID"></td></tr>
-	<tr><td>Transmit Cnt:<input type="text" id="StreamsCnt"></td></tr>	
-	<tr><td>Delta Millisecond:<input type="text" id="StreamsMilliDelta"></td></tr>		
-				
-	</table>
-	</div>				
-	<script>
-	function setupDefaults() {
-		// IP address of Streams we are connecting to - FIX IP FIXIP 		 
-		document.getElementById("StreamsIP").value =  "ws://172.16.49.152:8086";  // internal	FIX IP FIXIP 		  
-		//document.getElementById("StreamsIP").value =  "ws://169.55.142.238:8086"; // external	FIX IP FIXIP 
-		//document.getElementById("StreamsIP").value =  "ws://169.55.246.122:8086"; // external - FIX IP FIXIP 		 	
-		//(!location.host) ? "FILL IN" : location.host;
-		document.getElementById("StreamsID").value =  "USER_" + Math.ceil(Math.random() * 100);
-		SessionId = document.getElementById("StreamsID").value;  		 		
-		SessionIP = document.getElementById("StreamsIP").value;  		 					
-	}
-	</script>
-	
+	</div>
 </body>
 </html>

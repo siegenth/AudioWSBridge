@@ -12,7 +12,7 @@
     mags
 ----->
 <head>
-    <title>Test Server WebSocket Sink</title>
+    <title>Get data from Streams via Proxy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="support.css" type="text/css"></link>
@@ -21,8 +21,6 @@
 <script type="text/javascript">
 // Some variables....
 var ws = null;
-var nodeName = "172.16.49.152";
-var portID = "8087";
 var RenderData = {};
 // this table needs to correspond to the html table below.
 var ColorW = new Array('#FF0000','#FFFF00','#00FF00',
@@ -33,39 +31,12 @@ var smoothieSml;
 var smoothieMed;
 var smoothieBig;
 
-// Extract the json from the batch portion. 
-function extractBatch(msg) {
-    parser = new DOMParser();
-    var xmlDoc = parser.parseFromString(msg, "text/xml");
-    var x = xmlDoc.getElementsByTagName("BATCH");
-    if (x.length == 0)
-        return ("")
-    return (x[0].childNodes[0].nodeValue)
-}
-
-
-
-function hexStrToInt16(hexStr) {
-    var lHex, hHex, lInt, hInt, idx, val;
-    var view = new  DataView(new ArrayBuffer(16));
-    var audioFlt = new Float32Array(hexStr.length/4);
-    var int16;
-    var len = hexStr.length;
-    var offset = 0;
-    for (var idx = 0; idx < len; idx+=4) {
-        int16 = parseInt("0X" + hexStr.slice(idx, idx+4));
-        // Yes do need this DataView processing.
-        view.setInt16(0, int16, true);
-        audioFlt[offset++] = (view.getInt16(0)/32767.0);
-    }
-    return audioFlt;
-}
-
 // User has selected the link, they want to see the data from server. 
 //    - connect up to server
 //    - data flows in via the onmessage.
-var t1 = 0
-var t0 = 0 
+var t1 = 0;
+var t0 = 0;
+var buildCommandRequest; 
 function StartWebSocket()
 {
     if ("WebSocket" in window)
@@ -75,37 +46,40 @@ function StartWebSocket()
      ws = new WebSocket("ws://" + serverNode + "/WebsocketApp/Backward");	 
      ws.onopen = function()
      {
-        // Web Socket is connected, send data using send()        
+     // Web Socket is connected, send data using send()        
         var buildUri =  document.getElementById("formWS_Streams").value;
-//        ws.send("#MONITOR#START#" + "ws://172.16.49.152:8087");        
-        ws.send("#MONITOR#START#" + buildUri);        
-        
+	    // Yes the hashes are significant
+	    buildCommandRequest = "#MONITOR#START#" + buildUri;
+	    var commandProxy = document.getElementById("commandToProxy");
+	    commandProxy.innerHTML = "<b>"+ buildCommandRequest+"</b>";
+        ws.send(buildCommandRequest);
      };
      ws.onmessage = function (evt)
      { 
-     	
+     	var controlOut = document.getElementById("control");
         var received_msg = evt.data;
         if (received_msg[0] != "{") {
-	        console.log("UNKNOWN received_msg:" + received_msg);     
+        	var buildMessage = "UNKNOWN received_msg:" + received_msg; 
+	        console.log(buildMessage);
+			controlOut.innerHTML = buildMessage;
 	        return;   
         }
         
         var json_msg = JSON.parse(received_msg);
         if ('control' in json_msg)  {
-            var controlOut = document.getElementById("control");
-	    	controlOut.innerHTML = "<b><p>" + json_msg.control.status + ":" + json_msg.control.value + "</p></b>";
+	    	controlOut.innerHTML =  json_msg.control.status + ":" + json_msg.control.value;
         } else {
 
 		    var tuple = json_msg.tuples[0].tuple;
             // write text into document
 	    	document.getElementById("SessID").innerHTML = tuple.id +":" + tuple.tile3;
+	    	// get timing between packets
 	    	var t1 = performance.now();
 	    	document.getElementById("TimerID").innerHTML = t1 - t0;
 	    	t0 = t1;
-	    	    	
+
             //console.log(tuple.id + "#" + tuple.signalData.length + " " + tuple.signalData.slice(0,20));
-            //var waveForm = hexStrToInt16(tuple.signalData);
-			// New entry 
+			// New entry ? 
 	        if (!RenderData.hasOwnProperty(tuple.id) ) {
 				RenderData[tuple.id] = new Object();
 				RenderData[tuple.id].connectsSml = new TimeSeries();
@@ -147,9 +121,7 @@ function StartWebSocket()
 function startUp() {
     // Buld the WS uri, get the IP address to build. 
     var ip = location.host;
-//    ip = "172.16.49.152" ; // hardware for debugging
 
-    // nodeName = (ip.split(":") == 1) ? "ws://" + ip : ip.split(":")[0] + ":" + portID;
     document.getElementById("formWS").value = location.host;
     document.getElementById("formWS_Streams").value = "ws://" + "172.16.49.152:8087";  // vm FIX IP FIXIP
     //document.getElementById("formWS_Streams").value = "ws://" + "169.55.246.122:8087";  // FIX IP FIXIP    
@@ -161,49 +133,57 @@ function startUp() {
     smoothieBig = new SmoothieChart({maxValue:2,minValue:-0.1});
     smoothieBig.streamTo(document.getElementById("mycanvasBig"));
 }
+
 window.onload = function() {startUp();}
 </script>
 
 </head>
 <body>
-<h2>WebSocketServerSink messages... </h2>
-<p>The WebSocketServerSink operator has a port parameter that specifies 
-    which port it will wait for connections on. This client will connect
-    to that port port (8085 in this case). 
+<h2>Connect to Streams via Proxy</h2>
+<p>Stripped down example.
+</p>
+<p>The Streams WebSocketSink specifies which port it will wait for connections on. This 
+   WebPage requests a connection to the port via a proxy. The proxy is running
+   on Liberty. 
 <p>
-   <p>Browser to Liberty ws://<input type="text" id="formWS">/Websocketapp/Backward</p>
-   <p>Liberty to Streams <input type="text" size="40" id="formWS_Streams"></p>   
+   <p>URI for proxy ws://<input type="text" id="formWS">/Websocketapp/Backward</p>
+   <p>URI for proxy to streams <input type="text" size="40" id="formWS_Streams"></p>   
 <p>
 <div id="sse">
- <center>
-   <a class="button green" href="javascript:StartWebSocket()" >Start Receiving</a>
- </center>
+ 
+   <a class="button green" href="javascript:StartWebSocket()" >Send request to proxy 'Forward Data'</a>
+ 
 </div>
 <h2>Messages Received from Server on WebSocket interface:</h2>
 <p>After pushing the button above tuples flowing into the WebSocketServerSink operator 
    of the Stream's application are transmitted via WebSockets and displayed below. The 
-   .wav audio that we receive on Streams is run through an aggreation and sent back. 
+   .wav audio that we receive on Streams is run through an aggregation and sent back. 
    Get the communication stable. 
    
 </p>
-<h3>Control message</h3>
-<span id="control"></span></p>
+Command message (tell proxy who to connect to):
+<span id="commandToProxy"></span>
+
+<h3>Control message (from proxy)</h3>
+<span id="control"></span>
 <p>
 <hr>
 
-<h3>Standard messages:</h3>
-<h2>Data from ID: <span id="SessID"></span></h2>
-<h4>Delta Time (millisecond) : <span id="TimerID"></span></h4>
+<h4>Standard message: delta (millisecond) : <span id="TimerID"></span></h4>
+<p>
+<b>ID + 1st Data</b>: <span id="SessID"></span>
+</p>
+<hr>
+Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a> 
 <br>
     <canvas id="mycanvasSmall" width="300" height="Med"></canvas>
-
 <br>
     <canvas id="mycanvasMed" width="300" height="Med"></canvas>
 <br>
     <canvas id="mycanvasBig" width="300" height="Med"></canvas>
 
 <br>
-<a href="http://smoothiecharts.org">smoothiecharts</a>
+
 
 <table>
 <tr>

@@ -169,5 +169,5 @@ function writeString(view, offset, string){
   floatTo16BitPCM(view, 44, samples);
 
   return view;  // this is where the audio file is setup. can we push this to streams here?
-                // we have multiple saves, where are the others happening.
+
 }
