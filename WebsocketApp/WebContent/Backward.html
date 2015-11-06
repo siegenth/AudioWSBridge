@@ -18,7 +18,7 @@
   #xxx#STOP#data    - this will close the file.  
     </p>
 
-    If you go into the code you can set the path for the WS '/WebsocketApp/DecodeEncodeForward, /WebsocketApp/Forward and /Forward/rentals/.... ??
+    If you go into the code you can set the path for the WS '/AudioWS/DecodeEncodeForward, /AudioWS/Forward and /Forward/rentals/.... ??
 <div>
     IP:<input id="ipaddress" type="text"></input>
     Set before first send....
@@ -62,7 +62,7 @@
     var webSocket;
     function connect(ip) {
 	
-      	webSocket = new WebSocket('ws://' + ip + '/WebsocketApp/Backward');
+      	webSocket = new WebSocket('ws://' + ip + '/AudioWS/Backward');
     	webSocket.onerror = function(event) {
 	      onError(event)
     	};

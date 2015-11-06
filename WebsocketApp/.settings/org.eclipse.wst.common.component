@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
-    <wb-module deploy-name="WebsocketApp">
+    <wb-module deploy-name="AudioWS">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/.apt_generated"/>
-        <property name="context-root" value="WebsocketApp"/>
-        <property name="java-output-path" value="/WebsocketApp/WebContent/WEB-INF/classes"/>
+        <property name="java-output-path" value="/AudioWS/WebContent/WEB-INF/classes"/>
+        <property name="context-root" value="AudioWS"/>
     </wb-module>
 </project-modules>

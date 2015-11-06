@@ -16,6 +16,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="support.css" type="text/css"></link>
+    <script type="text/javascript" src="COMMON.js"></script>    
     <script type="text/javascript" src="jsResources/smoothie.js"></script>
 
 <script type="text/javascript">
@@ -43,7 +44,7 @@ function StartWebSocket()
   {
           // Let us open a web socket
      var serverNode = (document.getElementById("formWS").value).trim();
-     ws = new WebSocket("ws://" + serverNode + "/WebsocketApp/Backward");	 
+     ws = new WebSocket("ws://" + serverNode + "/AudioWS/Backward");	 
      ws.onopen = function()
      {
      // Web Socket is connected, send data using send()        
@@ -123,8 +124,7 @@ function startUp() {
     var ip = location.host;
 
     document.getElementById("formWS").value = location.host;
-    document.getElementById("formWS_Streams").value = "ws://" + "172.16.49.152:8087";  // vm FIX IP FIXIP
-    //document.getElementById("formWS_Streams").value = "ws://" + "169.55.246.122:8087";  // FIX IP FIXIP    
+    document.getElementById("formWS_Streams").value = "ws://" + COMMON_FIXIP + ":8087";  
 
     smoothieSml = new SmoothieChart({maxValue:2,minValue:-0.1});
     smoothieSml.streamTo(document.getElementById("mycanvasSmall"));
@@ -146,7 +146,7 @@ window.onload = function() {startUp();}
    WebPage requests a connection to the port via a proxy. The proxy is running
    on Liberty. 
 <p>
-   <p>URI for proxy ws://<input type="text" id="formWS">/Websocketapp/Backward</p>
+   <p>URI for proxy ws://<input type="text" id="formWS">/AudioWS/Backward</p>
    <p>URI for proxy to streams <input type="text" size="40" id="formWS_Streams"></p>   
 <p>
 <div id="sse">

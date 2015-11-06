@@ -42,7 +42,7 @@ DEALINGS IN THE SOFTWARE.
       if (!nodePort) {
         nodePort = window.document.location.host;
       }
-      var webSocketForwarderUrl  = nodePort + "/WebsocketApp/Forward";
+      var webSocketForwarderUrl  = nodePort + "/AudioWS/Forward";
 
       console.log("Connection using webSocketForwarderUrl:" + webSocketForwarderUrl);
       console.log("Connection using SessionId:" + SessionId);      
