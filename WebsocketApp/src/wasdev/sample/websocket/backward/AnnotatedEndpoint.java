@@ -132,7 +132,9 @@ public class AnnotatedEndpoint implements BackwardResponse {
     // of the WebSocket implentation on Liberty, this will not be called on error conditions.
     @OnError
     public void onError(Throwable t) {
-        // no error processing will be done for this sample
+    	
+    	System.err.println("onError@annotatedEndpoint" + t.getMessage());
+
     }
 
 	@Override

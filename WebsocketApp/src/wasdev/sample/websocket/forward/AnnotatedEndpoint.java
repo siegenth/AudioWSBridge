@@ -46,6 +46,7 @@ public class AnnotatedEndpoint {
 	private static final int SAMPLECOUNT = 10;
 	
     Session currentSession = null;
+    String currentId;
     int count = 0;
     ClientWebSocket clientWebSocket = null;
     String uriString = null;
@@ -56,7 +57,7 @@ public class AnnotatedEndpoint {
     public void onOpen(Session session, EndpointConfig ec) {
     	// Store the WebSocket session for later use.
         currentSession = session;
-        clientWebSocket = new ClientWebSocket(uriString);
+        clientWebSocket = new ClientWebSocket("FROM onOpen call", uriString);
         clientWebSocket.pause();
     }
 
@@ -69,14 +70,16 @@ public class AnnotatedEndpoint {
         try {
             count++;
             if ((count % SAMPLECOUNT) == 0) {
-            	System.out.println("count:" + count + " message length:" + message.length() + ":" + message.substring(0,Math.min(30, message.length())) + "@AnnotatedEndPoint.reciveMessage");
+            	//System.out.println("count:" + count + " message length:" + message.length() + ":" + message.substring(0,Math.min(30, message.length())) + "@AnnotatedEndPoint.reciveMessage");
             }
             
         		String[] messageParts = message.split(SEPARATOR);            	
             	if (uriString == null) {
         			// looking for IP to connect to.
             		if (START.equals(messageParts[COMMAND])) {
-            			uriString = messageParts[DATA];            		            	            		                	
+            			uriString = messageParts[DATA];  
+            			currentId = messageParts[ID];
+            	    	System.out.println("ID:" + currentId +", forwarder connection is being established." );    	            			
             		} else {
             			return;   // NOTE - we are not message being sent 
             		}
@@ -87,10 +90,10 @@ public class AnnotatedEndpoint {
             		if (uriString == null) {
             			return; // we do not have a connection. 
             		}
-            		System.out.println(uriString + "@AnnotatedEndpoint");
-            		clientWebSocket = new ClientWebSocket(uriString);
+                	System.out.println("ID:" + currentId + ", forwarder connecting: " + uriString );    	            		
+            		clientWebSocket = new ClientWebSocket(currentId, uriString);
             		if (!clientWebSocket.ready()) {
-            			System.err.println("Failed to connect to :  + uriString");
+                    	System.out.println("ID:" + currentId + " Forwarder failed to connect: " + uriString );    	            		            			
             			clientWebSocket = null;
             			uriString = null;
             		}
@@ -115,14 +118,18 @@ public class AnnotatedEndpoint {
     // Using the OnClose annotation will cause this method to be called when the WebSocket Session is being closed.
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        // no clean up is needed here for this sample
+    	// The connection has been close, usually occur when the page is left. 
+    	System.out.println("ID:" + currentId +", forwarder connection closed." );   
+    	clientWebSocket.shut();   // close down the connection.
+    	uriString = null;	      
+    	clientWebSocket = null;
     }
 
     // Using the OnError annotation will cause this method to be called when the WebSocket Session has an error to report. For the Alpha version
     // of the WebSocket implentation on Liberty, this will not be called on error conditions.
     @OnError
     public void onError(Throwable t) {
-        // no error processing will be done for this sample
+    	System.err.println("ID:" + currentId + ", forwarder onError message: " + t.getMessage() ); 	    	
     }
 
 }

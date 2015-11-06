@@ -6,7 +6,6 @@ package wasdev.sample.websocket.backward;
  *
  */
 
-
 public interface BackwardResponse {
 	void responseFromStreams(String msg);
 	void shutdownFromStreams();

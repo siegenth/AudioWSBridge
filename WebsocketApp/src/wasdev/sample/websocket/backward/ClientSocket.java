@@ -17,7 +17,7 @@ class ClientSocket extends WebSocketClient {
     @Override
     public void onMessage(String message) {
     	backwardResponse.responseFromStreams(message);
-        System.out.println("onMessage@ClientSocket-backward:" + message);
+    //    System.out.println("onMessage@ClientSocket-backward:" + message);
     }
 
     @Override

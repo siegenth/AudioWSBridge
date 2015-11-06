@@ -10,15 +10,17 @@ public class ClientWebSocket {
 
 	private static final int TIMEOUT = 10;
 	private static final int ONESEC = 1000;
+	String currentId;	
 	ClientSocket clientSocket;
 
-	public ClientWebSocket(String uriString) {
+	public ClientWebSocket(String currentId, String uriString) {
 
 		URI uri = null;
+		this.currentId = currentId;
 		try {
 			uri = new URI(uriString);
-			System.out.println(uri.toString() + "connecting:@ClientWebSockets");
-			clientSocket = new ClientSocket(uri);
+			System.out.println("ID: " + currentId + ", ClientWebSocket connecting to: " + uri.toString() );
+			clientSocket = new ClientSocket(currentId, uri);
 			this.pause(); // wait for things to settle out.
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
@@ -41,6 +43,7 @@ public class ClientWebSocket {
 
 	// Wait for the user to catchup.....
 	public void pause() {
+		System.out.println("ID: " + currentId + ", ClientWebSocket pause.");
 		try {
 			Thread.sleep(ONESEC);
 		} catch (InterruptedException ie) {
@@ -58,7 +61,7 @@ public class ClientWebSocket {
 		for (int idx = 0; (idx++ < TIMEOUT) && !clientSocket.isClosed(); pause())
 			;
 		if (!clientSocket.isClosed()) {
-			System.err.println("Failed to close the WS connection");
+			System.err.println("ID: " + currentId + ", Failed to close the WS connection");
 			return false;
 		}
 		return true;
@@ -70,15 +73,11 @@ public class ClientWebSocket {
 	 * @return false if it never came ready.
 	 */
 	public boolean ready() {
-		for (int idx = 0; (idx++ < TIMEOUT) && !clientSocket.isOpen(); pause())
-			;
+		for (int idx = 0; (idx++ < TIMEOUT) && !clientSocket.isOpen(); pause()) {
+			System.out.println("ID: " + currentId + ", cycling in ready loop.");
+		}
 		return clientSocket.isOpen();
 	}
 
-	// this is for testing....
-	public static void main(String[] args) {
-		ClientWebSocket cws = new ClientWebSocket("ws://172.16.49.153:8086");
-		cws.send("This from main!");
-	}
 
 }
