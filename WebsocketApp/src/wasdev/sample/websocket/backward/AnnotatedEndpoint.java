@@ -142,8 +142,9 @@ public class AnnotatedEndpoint implements BackwardResponse {
 		if (streamsSessionOpen) {
 			try {
 				if (!currentSession.isOpen()){
-					System.err.println("currentSession is not open - shutdown connection to Streams");
-					clientWebSocket.close();									
+					System.err.println("currentSession.isOpen() == FALSE");
+					System.out.println(" - " + currentSession.getId() + " not closing, see what happends");					
+					//clientWebSocket.close();									
 				} else {
 					currentSession.getBasicRemote().sendText(msg);
 				}
