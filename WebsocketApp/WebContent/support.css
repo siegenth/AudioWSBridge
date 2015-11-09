@@ -57,7 +57,9 @@ th, td {
     overflow: hidden;
     width: 90px;
 }
-
+p {
+	width: 450px;
+}
 #Xmycanvas { 
      position: absolute; 
      width: 100%; 

@@ -12,7 +12,8 @@
     mags
 ----->
 <head>
-    <title>Get data from Streams via Proxy</title>
+    <title>Monitor via Proxy</title>
+	<meta charset="utf-8"/>    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="support.css" type="text/css"></link>
@@ -31,6 +32,7 @@ var wCnt = 0;
 var smoothieSml;
 var smoothieMed;
 var smoothieBig;
+var smoothieHgh;
 
 // User has selected the link, they want to see the data from server. 
 //    - connect up to server
@@ -73,7 +75,7 @@ function StartWebSocket()
 
 		    var tuple = json_msg.tuples[0].tuple;
             // write text into document
-	    	document.getElementById("SessID").innerHTML = tuple.id +":" + tuple.tile3;
+	    	document.getElementById("DataJson").innerHTML = JSON.stringify(tuple);
 	    	// get timing between packets
 	    	var t1 = performance.now();
 	    	document.getElementById("TimerID").innerHTML = t1 - t0;
@@ -86,6 +88,7 @@ function StartWebSocket()
 				RenderData[tuple.id].connectsSml = new TimeSeries();
 				RenderData[tuple.id].connectsMed = new TimeSeries();
 				RenderData[tuple.id].connectsBig = new TimeSeries();
+				RenderData[tuple.id].connectsHgh = new TimeSeries();				
 				RenderData[tuple.id].index = wCnt % ColorW.length;
 				smoothieSml.addTimeSeries(RenderData[tuple.id].connectsSml, 
 	                          { strokeStyle:ColorW[RenderData[tuple.id].index] });
@@ -93,6 +96,8 @@ function StartWebSocket()
                               { strokeStyle:ColorW[RenderData[tuple.id].index] });
 				smoothieBig.addTimeSeries(RenderData[tuple.id].connectsBig,
                               { strokeStyle:ColorW[RenderData[tuple.id].index] });                             
+				smoothieHgh.addTimeSeries(RenderData[tuple.id].connectsHgh,
+                              { strokeStyle:ColorW[RenderData[tuple.id].index] });                                                           
 				wCnt++;
         	}
             // write into graph        	
@@ -102,6 +107,7 @@ function StartWebSocket()
             RenderData[tuple.id].connectsSml.append(new Date().getTime(), tuple.tile1);
             RenderData[tuple.id].connectsMed.append(new Date().getTime(), tuple.tile2);
             RenderData[tuple.id].connectsBig.append(new Date().getTime(), tuple.tile3);
+            RenderData[tuple.id].connectsHgh.append(new Date().getTime(), tuple.tile4);            
             
 		}
      };
@@ -126,12 +132,14 @@ function startUp() {
     document.getElementById("formWS").value = location.host;
     document.getElementById("formWS_Streams").value = "ws://" + COMMON_FIXIP + ":8087";  
 
-    smoothieSml = new SmoothieChart({maxValue:2,minValue:-0.1});
+    smoothieSml = new SmoothieChart({maxValue:1,minValue:-0.1});
     smoothieSml.streamTo(document.getElementById("mycanvasSmall"));
-    smoothieMed = new SmoothieChart({maxValue:2,minValue:-0.1});
+    smoothieMed = new SmoothieChart({maxValue:1,minValue:-0.1});
     smoothieMed.streamTo(document.getElementById("mycanvasMed"));
-    smoothieBig = new SmoothieChart({maxValue:2,minValue:-0.1});
+    smoothieBig = new SmoothieChart({maxValue:1,minValue:-0.1});
     smoothieBig.streamTo(document.getElementById("mycanvasBig"));
+    smoothieHgh = new SmoothieChart({maxValue:1,minValue:-0.1});
+    smoothieHgh.streamTo(document.getElementById("mycanvasHgh"));    
 }
 
 window.onload = function() {startUp();}
@@ -151,7 +159,7 @@ window.onload = function() {startUp();}
 <p>
 <div id="sse">
  
-   <a class="button green" href="javascript:StartWebSocket()" >Send request to proxy 'Forward Data'</a>
+   <a class="button green" href="javascript:StartWebSocket()" >Stream Data</a>
  
 </div>
 <h2>Messages Received from Server on WebSocket interface:</h2>
@@ -171,39 +179,43 @@ Command message (tell proxy who to connect to):
 
 <h4>Standard message: delta (millisecond) : <span id="TimerID"></span></h4>
 <p>
-<b>ID + 1st Data</b>: <span id="SessID"></span>
+<b>DATA</b>: <span id="DataJson"></span>
 </p>
 <hr>
 Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a> 
 <br>
-    <canvas id="mycanvasSmall" width="300" height="Med"></canvas>
+    <canvas id="mycanvasSmall" width="350" height="Med"></canvas>
 <br>
-    <canvas id="mycanvasMed" width="300" height="Med"></canvas>
+    <canvas id="mycanvasMed" width="350" height="Med"></canvas>
 <br>
-    <canvas id="mycanvasBig" width="300" height="Med"></canvas>
-
+    <canvas id="mycanvasBig" width="350" height="Med"></canvas>
+<br>
+    <canvas id="mycanvasHgh" width="350" height="Med"></canvas>
 <br>
 
 
-<table>
+<table style="width:350px">
 <tr>
    <td bgcolor="#FF0000">
     ID:<span id="devId0"></span>
     <span id="nameSmall0"></span>:<span id="rangeSmall0"></span>
     <span id="nameMed0"></span>:<span id="rangeMed0"></span>
     <span id="nameBig0"></span>:<span id="rangeBig0"></span>
+    <span id="nameHgh0"></span>:<span id="rangeHgh0"></span>    
    </td>   
    <td bgcolor="#FFFF00">
     ID:<span id="devId1"></span>
     <span id="nameSmall1"></span>:<span id="rangeSmall1"></span>
     <span id="nameMed1"></span>:<span id="rangeMed1"></span>
     <span id="nameBig1"></span>:<span id="rangeBig1"></span>
+    <span id="nameHgh1"></span>:<span id="rangeHgh1"></span>    
    </td>   
    <td bgcolor="#00FF00">
     ID:<span id="devId2"></span>
     <span id="nameSmall2"></span>:<span id="rangeSmall2"></span>
     <span id="nameMed2"></span>:<span id="rangeMed2"></span>
     <span id="nameBig2"></span>:<span id="rangeBig2"></span>
+    <span id="nameHgh2"></span>:<span id="rangeHgh2"></span>    
    </td>
 </tr>
 <tr>
@@ -212,18 +224,21 @@ Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a>
     <span id="nameSmall3"></span>:<span id="rangeSmall3"></span>
     <span id="nameMed3"></span>:<span id="rangeMed3"></span>
     <span id="nameBig3"></span>:<span id="rangeBig3"></span>
+    <span id="nameHgh3"></span>:<span id="rangeHgh3"></span>    
    </td>   
    <td bgcolor="#CC3300">
     ID:<span id="devId4"></span>
     <span id="nameSmall4"></span>:<span id="rangeSmall4"></span>
     <span id="nameMed4"></span>:<span id="rangeMed4"></span>
-    <span id="nameBig4"></span>:<span id="rangeBig4"></span>
+    <span id="nameBig4"></span>:<span id="rangeBig4"></span>    
+    <span id="nameHgh4"></span>:<span id="rangeHgh4"></span>
    </td>   
    <td bgcolor="#00FFFF">
     ID:<span id="devId5"></span>
     <span id="nameSmall5"></span>:<span id="rangeSmall5"></span>
     <span id="nameMed5"></span>:<span id="rangeMed5"></span>
-    <span id="nameBig5"></span>:<span id="rangeBig5"></span>
+    <span id="nameBig5"></span>:<span id="rangeBig5"></span>    
+    <span id="nameHgh5"></span>:<span id="rangeHgh5"></span>
    </td>
 </tr>
 <tr>
@@ -232,18 +247,21 @@ Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a>
     <span id="nameSmall6"></span>:<span id="rangeSmall6"></span>
     <span id="nameMed6"></span>:<span id="rangeMed6"></span>
     <span id="nameBig6"></span>:<span id="rangeBig6"></span>
+    <span id="nameHgh6"></span>:<span id="rangeHgh6"></span>
    </td>   
    <td bgcolor="#0F770F">
     ID:<span id="devId7"></span>
     <span id="nameSmall7"></span>:<span id="rangeSmall7"></span>
     <span id="nameMed7"></span>:<span id="rangeMed7"></span>
     <span id="nameBig7"></span>:<span id="rangeBig7"></span>
+    <span id="nameHgh7"></span>:<span id="rangeHgh7"></span>    
    </td>   
    <td bgcolor="#FFFFFF">
     ID:<span id="devId8"></span>
     <span id="nameSmall8"></span>:<span id="rangeSmall8"></span>
     <span id="8"></span>:<span id="rangeMed8"></span>
     <span id="nameBig8"></span>:<span id="rangeBig8"></span>
+    <span id="nameHgh8"></span>:<span id="rangeHgh8"></span>    
    </td>
 </tr>
 <table>
