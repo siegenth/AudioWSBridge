@@ -42,6 +42,10 @@ var t0 = 0;
 var buildCommandRequest; 
 function StartWebSocket()
 {
+	if (ws != null) {
+        alert("Connection is currently open"); 	
+		return;
+	}
     if ("WebSocket" in window)
   {
           // Let us open a web socket
@@ -147,27 +151,20 @@ window.onload = function() {startUp();}
 
 </head>
 <body>
-<h2>Connect to Streams via Proxy</h2>
-<p>Stripped down example.
+<h3>Connect to Streams via Proxy</h3>
 </p>
 <p>The Streams WebSocketSink specifies which port it will wait for connections on. This 
-   WebPage requests a connection to the port via a proxy. The proxy is running
-   on Liberty. 
-<p>
+   WebPage requests a connection to the port via a proxy running on Liberty. AFter
+   telling the proxy where to get data, a connection is made and the data flows. 
+</p>
    <p>URI for proxy ws://<input type="text" id="formWS">/AudioWS/Backward</p>
    <p>URI for proxy to streams <input type="text" size="40" id="formWS_Streams"></p>   
-<p>
-<div id="sse">
- 
-   <a class="button green" href="javascript:StartWebSocket()" >Stream Data</a>
- 
-</div>
-<h2>Messages Received from Server on WebSocket interface:</h2>
-<p>After pushing the button above tuples flowing into the WebSocketServerSink operator 
+
+
+<h3>Messages Received from Server on WebSocket interface:</h2>
+<p>Push the button below, tuples flowing into the WebSocketServerSink operator 
    of the Stream's application are transmitted via WebSockets and displayed below. The 
-   .wav audio that we receive on Streams is run through an aggregation and sent back. 
-   Get the communication stable. 
-   
+   .wav audio that we receive on Streams is run through FFT and Aggregation operators.
 </p>
 Command message (tell proxy who to connect to):
 <span id="commandToProxy"></span>
@@ -176,7 +173,6 @@ Command message (tell proxy who to connect to):
 <span id="control"></span>
 <p>
 <hr>
-
 <h4>Standard message: delta (millisecond) : <span id="TimerID"></span></h4>
 <p>
 <b>DATA</b>: <span id="DataJson"></span>
@@ -192,8 +188,9 @@ Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a>
 <br>
     <canvas id="mycanvasHgh" width="350" height="Med"></canvas>
 <br>
-
-
+<div id="sse">
+   <a class="button green" href="javascript:StartWebSocket()" >Receive Data</a> 
+</div>
 <table style="width:350px">
 <tr>
    <td bgcolor="#FF0000">
