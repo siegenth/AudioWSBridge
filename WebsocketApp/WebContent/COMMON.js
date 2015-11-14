@@ -10,7 +10,5 @@
 // external - public
 var COMMON_FIXIP="169.55.246.122"; // .213 
 //var COMMON_FIXIP="169.45.142.238"; // .166
-// external - private 
-//var COMMON_FIXIP="xxx.xx.xxx.xxx";
 //TextCell["\"10.142.241.166\"->\"169.45.142.238\""]
 //TextCell["\"10.143.133.213\"->\"169.55.246.122\""]

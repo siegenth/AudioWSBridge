@@ -39,7 +39,18 @@ var smoothieHgh;
 //    - data flows in via the onmessage.
 var t1 = 0;
 var t0 = 0;
-var buildCommandRequest; 
+var buildCommandRequest;
+var restartCount = 0;
+/**
+* Hack to get around problem I do not understand, must be occuring on 
+* in servlet. Why is this connection closed while the recorder never
+* closes??
+*/ 
+function restartWebSocket() {
+    restartCount++;
+	document.getElementById("restartMessage").innerHTML = "restart #" + restartCount;
+	window.setTimeout(StartWebSocket, 2000)
+} 
 function StartWebSocket()
 {
 	if (ws != null) {
@@ -116,9 +127,11 @@ function StartWebSocket()
 		}
      };
      ws.onclose = function()  { 
-        // websocket is closed.
-        alert("Connection is closed..."); 
-        ws = null;
+        // websocket is closed - who did that
+        //alert("Connection is closed...");
+        ws = null;        
+	    document.getElementById("restartMessage").innerHTML = "Connection Restarting";        
+        restartWebSocket();
      };
   }
   else
@@ -143,7 +156,10 @@ function startUp() {
     smoothieBig = new SmoothieChart({maxValue:1,minValue:-0.1});
     smoothieBig.streamTo(document.getElementById("mycanvasBig"));
     smoothieHgh = new SmoothieChart({maxValue:1,minValue:-0.1});
-    smoothieHgh.streamTo(document.getElementById("mycanvasHgh"));    
+    smoothieHgh.streamTo(document.getElementById("mycanvasHgh"));
+    
+    restartWebSocket();
+        
 }
 
 window.onload = function() {startUp();}
@@ -151,33 +167,7 @@ window.onload = function() {startUp();}
 
 </head>
 <body>
-<h3>Connect to Streams via Proxy</h3>
-</p>
-<p>The Streams WebSocketSink specifies which port it will wait for connections on. This 
-   WebPage requests a connection to the port via a proxy running on Liberty. AFter
-   telling the proxy where to get data, a connection is made and the data flows. 
-</p>
-   <p>URI for proxy ws://<input type="text" id="formWS">/AudioWS/Backward</p>
-   <p>URI for proxy to streams <input type="text" size="40" id="formWS_Streams"></p>   
-
-
-<h3>Messages Received from Server on WebSocket interface:</h2>
-<p>Push the button below, tuples flowing into the WebSocketServerSink operator 
-   of the Stream's application are transmitted via WebSockets and displayed below. The 
-   .wav audio that we receive on Streams is run through FFT and Aggregation operators.
-</p>
-Command message (tell proxy who to connect to):
-<span id="commandToProxy"></span>
-
-<h3>Control message (from proxy)</h3>
-<span id="control"></span>
-<p>
-<hr>
-<h4>Standard message: delta (millisecond) : <span id="TimerID"></span></h4>
-<p>
-<b>DATA</b>: <span id="DataJson"></span>
-</p>
-<hr>
+<h3>Streaming Audio Magnitude</h3>
 Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a> 
 <br>
     <canvas id="mycanvasSmall" width="350" height="Med"></canvas>
@@ -189,7 +179,10 @@ Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a>
     <canvas id="mycanvasHgh" width="350" height="Med"></canvas>
 <br>
 <div id="sse">
-   <a class="button green" href="javascript:StartWebSocket()" >Receive Data</a> 
+<!-- 
+   <a class="button green" href="javascript:StartWebSocket()" >Receive Data</a>
+ -->
+   <span id="restartMessage"></span>   
 </div>
 <table style="width:350px">
 <tr>
@@ -262,6 +255,33 @@ Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a>
    </td>
 </tr>
 <table>
+</p>
+<p>The Streams WebSocketSink specifies which port it will wait for connections on. This 
+   WebPage requests a connection to the port via a proxy running on Liberty. AFter
+   telling the proxy where to get data, a connection is made and the data flows. 
+</p>
+   <p>URI for proxy ws://<input type="text" id="formWS">/AudioWS/Backward</p>
+   <p>URI for proxy to streams <input type="text" size="40" id="formWS_Streams"></p>   
+
+
+<h3>Messages Received from Server on WebSocket interface:</h2>
+<p>Push the button below, tuples flowing into the WebSocketServerSink operator 
+   of the Stream's application are transmitted via WebSockets and displayed below. The 
+   .wav audio that we receive on Streams is run through FFT and Aggregation operators.
+</p>
+Command message (tell proxy who to connect to):
+<span id="commandToProxy"></span>
+
+<h3>Control message (from proxy)</h3>
+<span id="control"></span>
+<p>
+<hr>
+<h4>Standard message: delta (millisecond) : <span id="TimerID"></span></h4>
+<p>
+<b>DATA</b>: <span id="DataJson"></span>
+</p>
+<hr>
+
 </body>
 </html>
 

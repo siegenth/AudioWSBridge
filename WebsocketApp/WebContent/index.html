@@ -5,17 +5,21 @@
 </head>
 <body>
 <h2>
-Entry page for testing/examples. 
+Audio data to Streams and Back. 
 </h2>
 <p>
-Some rough cut tests to collect/display audio data, rip this code up to do what you need
-to do.
-<p>
-<p>
-- steal from your friends.
+Some rough cut demo to collect/display audio data. 
+
 </p>
-<dl>
-<h3>You need to be on FireFox to get the audio to work. Chrome has 'issues' when it's not local and http (security).</h3>
+<h3>Notes regarding demo.</h3>
+<ul>
+<li>This works on FireFox, I have had difficulties with Chrome and Safari.</li> 
+<li>You must have a very good data line to get to Streams on BlueMix. This wants to push 44k samples per second .</li>
+<li>You can have multiple connection transmitting, using the 'Record Audio' page.</li>
+<li>The 'Record Audio' page transmits data only after you toggle the 'Transmit to Streams' box, you know it's sending when the background turns red.</li>
+<li>This works nicely with two displays.</li>
+
+</ul>
 
 <dt><a target="_blank" href="./recorder.html">Record Audio</a></dt>
 <dd>Record Audio Stream, stream to Streams. This attaches to the browsers microphone.<br>
@@ -25,8 +29,11 @@ If multiple laptops connect, you'll see them in the monitor page below.
 <dt><a target="_blank" href="./monitor.html">Monitor Audio</a></dt>
 <dd>Monitor the Audio that has been processed on streams. Multiple Streams are monitored from here.  </dd>
 
+<dt><a target="_blank" href="http://onlinetonegenerator.com/?freq=7040">Tone Generator</a>
+<dd>Use this to generate a 7040Khz done, this will cause data to appear in lowest output box.</dd>
+
 <dt><a target="_blank" href="./rawAudio.html">Raw Audio</a></dt>
-<dd>Audio at 1/2 speed. </dd>
+<dd>Audio at 1/2 speed. This only works if you read the code (VERY DANGEROUS) </dd>
 <!-- 
 <dt><a target="_blank" href="./Forward.html">Forward control </a></dt>
 <dd>Send DEBUG Messages : Converse of Below, to get messages to Streams</dd>
@@ -36,23 +43,33 @@ If multiple laptops connect, you'll see them in the monitor page below.
  -->
 </dl>
 
-<H3>Notes:</H3>
+<H2>Notes:</H2>
+	<img src="img/app.jpg">
+<h3>The flow of data.</h3> 
 <ul>
-<li>This application sends message through a proxy to Streams. Due to security provided by 
-BlueMix we cannot make a direct connection to Streams, thus the proxy</li>
-<li>This proxy forwards data from the public internet to Streams which is residing in 
-the protected lair of BlueMix. The proxy server needs the IP address of the 
-Steams application. This is not as straight forward as I would like..
-<br>Steps...  
+<li><a target="_blank" href="./recorder.html">Record Audio</a> opens microphone on laptop, collect audio data at 44kHz.(Record Audio) </li>
+<li>Pack up the audio data, send to Liberty using WebSockets</li>
+<li>Forward Messages onto Streams WebSocket source operator</li>
+<li>Streams packets the audio into tuples of 4096 samples. </li>
+<li>4096 samples are decomposed into single samples tuples.</li>
+<li>4096 tuples windowed and processed by FFT operator.</li>
+<li>FFT magnitude output and broken into 10 chunks</li>
+<li>Magnitude converted to percentage, drop the upper 6 chunks.</li>
+<li>Transmit the 4 lowest chunks to Liberty using WebSocket sink. </li>
+<li>Liberty forwards onto waiting monitor page</li>
+<li><a target="_blank" href="./monitor.html">Monitor Audio</a> renders the 4 chunks to 4 graphs.</li>
+
+</ul>
+
+</ul>
+	
+This application sends message through a proxy to Streams. Due to security provided by 
+BlueMix we cannot make a direct connection to Streams, thus the proxy. 
+This proxy forwards data from the public internet to Streams which is residing in 
+the protected lair of BlueMix. 
 </li>
 </ul>
-<ol>
-<li>Get the IP address the streams application.</li>
-<li>Get the configuration of the Streams application. </li>
-<li>Execute the curl command incorporating the data from the configuration </li>
-<li>The result will provide the IP mapping. </li>
-<li>The (recorder/monitor) pages have a input box put this value.</li>
-</ol>
+
 
 </body>
 </html>
