@@ -18,7 +18,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="support.css" type="text/css"></link>
     <script type="text/javascript" src="COMMON.js"></script>    
-    <script type="text/javascript" src="jsResources/smoothie.js"></script>
+    <script type="text/javascript" src="http://smoothiecharts.org/smoothie.js"></script>
 
 <script type="text/javascript">
 // Some variables....
@@ -49,6 +49,7 @@ var restartCount = 0;
 function restartWebSocket() {
     restartCount++;
 	document.getElementById("restartMessage").innerHTML = "restart #" + restartCount;
+	document.getElementById("state").innerHTML = "CONNECTING";        	    	
 	window.setTimeout(StartWebSocket, 2000)
 } 
 function StartWebSocket()
@@ -75,19 +76,28 @@ function StartWebSocket()
      ws.onmessage = function (evt)
      { 
      	var controlOut = document.getElementById("control");
+     	var statusOut = document.getElementById("status");  
+     	var stateOut = document.getElementById("state");  
         var received_msg = evt.data;
         if (received_msg[0] != "{") {
-        	var buildMessage = "UNKNOWN received_msg:" + received_msg; 
+        	console.err("expected JSON:" +  received_msg);
+        	return;	
+        }         
+        if (received_msg[0] == "#") {
+        	var buildMessage =  received_msg; 
 	        console.log(buildMessage);
-			controlOut.innerHTML = buildMessage;
+			statusOut.innerHTML = buildMessage;
 	        return;   
         }
-        
+
         var json_msg = JSON.parse(received_msg);
         if ('control' in json_msg)  {
 	    	controlOut.innerHTML =  json_msg.control.status + ":" + json_msg.control.value;
+	    } else if('status' in json_msg) {
+			var buildMessage = (json_msg.status == 0 ? "SUCCESS" : "ERROR#" + json_msg.status) + ":" +json_msg.message
+			statusOut.innerHTML = buildMessage;
+			stateOut.innerHTML = json_msg.status == 0 ? "CONNECTED" : "DISCONNECTED";  			
         } else {
-
 		    var tuple = json_msg.tuples[0].tuple;
             // write text into document
 	    	document.getElementById("DataJson").innerHTML = JSON.stringify(tuple);
@@ -127,10 +137,9 @@ function StartWebSocket()
 		}
      };
      ws.onclose = function()  { 
-        // websocket is closed - who did that
-        //alert("Connection is closed...");
         ws = null;        
 	    document.getElementById("restartMessage").innerHTML = "Connection Restarting";        
+	    document.getElementById("status").innerHTML = "Connection Restarting";        	    
         restartWebSocket();
      };
   }
@@ -168,6 +177,7 @@ window.onload = function() {startUp();}
 </head>
 <body>
 <h3>Streaming Audio Magnitude</h3>
+<H3>WS connection:<span id="state">CONNECTING</span></b></H3>
 Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a> 
 <br>
     <canvas id="mycanvasSmall" width="350" height="Med"></canvas>
@@ -265,7 +275,7 @@ Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a>
 
 
 <h3>Messages Received from Server on WebSocket interface:</h2>
-<p>Push the button below, tuples flowing into the WebSocketServerSink operator 
+<p>Connects upon page load, tuples flowing into the WebSocketServerSink operator 
    of the Stream's application are transmitted via WebSockets and displayed below. The 
    .wav audio that we receive on Streams is run through FFT and Aggregation operators.
 </p>
@@ -273,7 +283,9 @@ Command message (tell proxy who to connect to):
 <span id="commandToProxy"></span>
 
 <h3>Control message (from proxy)</h3>
-<span id="control"></span>
+<b><span id="control"></span></b>
+<h3>Status message (from proxy)</h3>
+<b><span id="status"></span></b>
 <p>
 <hr>
 <h4>Standard message: delta (millisecond) : <span id="TimerID"></span></h4>

@@ -52,7 +52,6 @@ public class AnnotatedEndpoint implements BackwardResponse {
     int count = 0;
     ClientWebSocket clientWebSocket = null;
     String uriString = null;
-//    String uriString = "ws://169.55.246.102:8086"; // TODO IP address needs be a configuration parameter    
     // OnOpen will get called by WebSockets when the connection has been established successfully using WebSocket handshaking with
     // the HTTP Request - Response processing.
     @OnOpen
@@ -64,7 +63,15 @@ public class AnnotatedEndpoint implements BackwardResponse {
         streamsSessionOpen = true;
         
     }
-
+    /**
+     * 
+     * @param status 0 == success, all others fail.
+     * @param message
+     * @return
+     */
+    String buildStatus(int status, String message) {
+    	return ("{\"status\":" + status +  ",\"message\":\"" + message + "\"}");
+    }
     // using the OnMessage annotation for this method will cause this method to get called by WebSockets when this connection has received 
     // a WebSocket message from the other side of the connection.  
     // The message is derived from the WebSocket frame payloads of one, and only one, WebSocket message.
@@ -83,25 +90,27 @@ public class AnnotatedEndpoint implements BackwardResponse {
             		if (START.equals(messageParts[COMMAND])) {
             			uriString = messageParts[DATA];            		            	            		                	
             		} else {
-            			return;   // NOTE - we are not message being sent 
+            			return;   // NOTE - no message sent 
             		}
             	}
                 // send the message back to the other side with the iteration count.  Notice we can send multiple message without having
                 // to receive messages in between.            	
-            	if (clientWebSocket == null) {
+            	if (clientWebSocket == null) {  // DOC - not connected yet? 
             		if (uriString == null) {
             			return; // we do not have a connection. 
             		}
             		System.out.println(uriString + "@AnnotatedEndpoint");
             		clientWebSocket = new ClientWebSocket(uriString, this);
             		if (!clientWebSocket.ready()) {
-            			// DOC - We are not connected, put up a message. 
+            			// DOC - Failed to connect
             			System.err.println("Failed to connect to : " + uriString);
+            			this.responseFromStreams(buildStatus(1, "FAIL to connect to Streams using:" + uriString));
             			clientWebSocket = null;
             			uriString = null;
                 		streamsSessionOpen = false;            			
             			return;
             		}
+        			this.responseFromStreams(buildStatus(0, "SUCCESS :"  + uriString));            			            		
             		streamsSessionOpen = true;
             	}
             	clientWebSocket.send(message);
@@ -143,17 +152,20 @@ public class AnnotatedEndpoint implements BackwardResponse {
 			try {
 				if (!currentSession.isOpen()){
 					System.err.println("currentSession.isOpen() == FALSE");
-					System.out.println(" - " + currentSession.getId() + " not closing, see what happends");					
-					//clientWebSocket.close();									
+					clientWebSocket.close();									
 				} else {
 					currentSession.getBasicRemote().sendText(msg);
 				}
 			} catch (IOException e) {
 				System.err.println("Connection to client error - close Streams connection:" + e.getMessage() );
 			}
-		} else {
-			System.out.println("ressponseFromStreams(CLOSED):" + msg);
-
+		} else {// Connection not active, send message back state to client
+			try {
+				currentSession.getBasicRemote().sendText(msg);
+			} catch (IOException e) {
+				System.err.println("responseFromStreams(CLOSED) failed to send status message:" + msg);
+				System.err.println("responseFromStreams(CLOSED) message:" + e.getMessage() );
+			}							
 		}
 	}
 
