@@ -113,9 +113,9 @@ public class AnnotatedEndpoint implements BackwardResponse {
         			this.responseFromStreams(buildStatus(0, "SUCCESS :"  + uriString));            			            		
             		streamsSessionOpen = true;
             	}
-            	clientWebSocket.send(message);
-                currentSession.getBasicRemote().sendText("From: " + this.getClass().getSimpleName() + "  Iteration count: " + count);
-                currentSession.getBasicRemote().sendText(message);  
+            	clientWebSocket.send(message);   // sending message to Streams. 
+                currentSession.getBasicRemote().sendText("From Backward: " + this.getClass().getSimpleName() + "  Iteration count: " + count);
+                currentSession.getBasicRemote().sendText(message);   
 
             	if ((STOP.equals(messageParts[COMMAND]))) {
             		currentSession.getBasicRemote().sendText("OK. AnnotatedEndpoint stop.");

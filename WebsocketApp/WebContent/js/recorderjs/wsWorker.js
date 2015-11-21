@@ -34,15 +34,20 @@ this.onmessage = function(e) {
 		break;
 	}
 };
+
+
 /**
  * Init - setup the WS connection. - store the id, cannot use the '#' remove it.
  * 
  * @param config
  */
 
+
+
 function init(config) {
 	console.log("recorderWorker - init");
 	senderId = config.senderId.replace('#', '_');
+	
 	audioType = config.audioType;
 
 	var wsSoc = "ws://" + config.url;
@@ -57,11 +62,12 @@ function init(config) {
 
 	wsSnd.onmessage = function(evt) {
 		var received_msg = evt.data;
+		postMessage(evt.data);
 		// sndMsg.innerHTML = "Alert:<b>" + received_msg + "</b>";
 	};
 	wsSnd.onclose = function() {
 		// sndMsg.innerHTML = "Connection closed....";
-		this.postMessage("closed!");
+		postMessage("#closed!");
 		wsSnd = null;
 	};
 	// setInterval(buildMessage, 100);
@@ -151,5 +157,5 @@ function transmitChunk(chunkBuffer) {
 		type : audioType
 	});
 	transmitAudioBytes(audioBlob);
-	this.postMessage("next");
+	postMessage("next-transmitChunk");
 }

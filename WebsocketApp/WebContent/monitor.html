@@ -94,9 +94,12 @@ function StartWebSocket()
         if ('control' in json_msg)  {
 	    	controlOut.innerHTML =  json_msg.control.status + ":" + json_msg.control.value;
 	    } else if('status' in json_msg) {
+	    	if (json_msg.status == 1) {
+	    		ws = null;
+	    	}
 			var buildMessage = (json_msg.status == 0 ? "SUCCESS" : "ERROR#" + json_msg.status) + ":" +json_msg.message
 			statusOut.innerHTML = buildMessage;
-			stateOut.innerHTML = json_msg.status == 0 ? "CONNECTED" : "DISCONNECTED";  			
+			stateOut.innerHTML = json_msg.status == 0 ? "CONNECTED" : "NOT CONNECTED";  			
         } else {
 		    var tuple = json_msg.tuples[0].tuple;
             // write text into document
@@ -176,9 +179,9 @@ window.onload = function() {startUp();}
 
 </head>
 <body>
-<h3>Streaming Audio Magnitude</h3>
-<H3>WS connection:<span id="state">CONNECTING</span></b></H3>
-Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a> 
+<h3>Streaming Audio Magnitude via WebSockets (WS)</h3>
+<H4>Connection State: <span id="state">CONNECTING</span></H4>
+
 <br>
     <canvas id="mycanvasSmall" width="350" height="Med"></canvas>
 <br>
@@ -189,9 +192,8 @@ Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a>
     <canvas id="mycanvasHgh" width="350" height="Med"></canvas>
 <br>
 <div id="sse">
-<!-- 
-   <a class="button green" href="javascript:StartWebSocket()" >Receive Data</a>
- -->
+
+
    <span id="restartMessage"></span>   
 </div>
 <table style="width:350px">
@@ -267,18 +269,29 @@ Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a>
 <table>
 </p>
 <p>The Streams WebSocketSink specifies which port it will wait for connections on. This 
-   WebPage requests a connection to the port via a proxy running on Liberty. AFter
-   telling the proxy where to get data, a connection is made and the data flows. 
+   WebPage requests a connection to the port via a proxy running on Liberty. After
+   telling the proxy where to connect, a connection is made and the data flows. 
 </p>
    <p>URI for proxy ws://<input type="text" id="formWS">/AudioWS/Backward</p>
+   
    <p>URI for proxy to streams <input type="text" size="40" id="formWS_Streams"></p>   
+   <a class="button green" href="javascript:StartWebSocket()" >DEBUG</a>
 
 
-<h3>Messages Received from Server on WebSocket interface:</h2>
-<p>Connects upon page load, tuples flowing into the WebSocketServerSink operator 
-   of the Stream's application are transmitted via WebSockets and displayed below. The 
-   .wav audio that we receive on Streams is run through FFT and Aggregation operators.
+<h3>Audio Data to Streams, processing results rendered here. </h2>
+<p>The 'Audio Recorder' page opens the microphone within the browser and streams audio
+data via a proxy server to Streams. The audio data is processed by Streams using the 
+FFT operator. The results of the FFTs are returned via the proxy server to this page. 
+The graphs above are the 'nicer' rendering of the text data below. 
 </p>
+<p>
+Multiple 'Audio Recorder' pages can run. Since we are sending 44,000 samples per second per connection,
+your network bandwidth can effected. The slower the bandwidth the less reactive the application is. 
+</p>
+
+<hr>
+<hr>
+<p>Detail of the commuication</p>
 Command message (tell proxy who to connect to):
 <span id="commandToProxy"></span>
 
@@ -292,8 +305,14 @@ Command message (tell proxy who to connect to):
 <p>
 <b>DATA</b>: <span id="DataJson"></span>
 </p>
+<p>
+<p>
+Since this is WebSocket interface on the internet a WS savy application can get this live data. 
+()Read the code).
+</p>
+</p>
 <hr>
-
+Plots the data using:<a href="http://smoothiecharts.org">smoothiecharts</a> 
 </body>
 </html>
 

@@ -22,6 +22,10 @@ DEALINGS IN THE SOFTWARE.
   var AUDIO_WORKER_PATH =   'js/recorderjs/recorderWorker.js';
   var WS_WORKER_PATH = 'js/recorderjs/wsWorker.js';
   var streamsCnt = 0;
+  
+  var PostStatusMessage = function(message) {
+      document.getElementById("ConnectionStatus").value = message;      	  
+  }
 
   // DOC ! set the size of the collection buffer, and transmission buffer.  
   var Recorder = function(source, cfg){
@@ -53,7 +57,7 @@ DEALINGS IN THE SOFTWARE.
           url: webSocketForwarderUrl,
           senderId: SessionId,
           audioType: "audio/wav",
-          // TODO - Is this used, remove it if not - this is NOT where the size of the buffer is set.          
+            // TODO - Is this used, remove it if not - this is NOT where the size of the buffer is set.          
           chunkSize: 2000  
         }
       });
@@ -189,13 +193,16 @@ DEALINGS IN THE SOFTWARE.
     wsWorker.onmessage = function(e){   // This is where the data is returned.
       var command = e.data;
       console.log("wsWorker.onmessage : " + command);
-      document.getElementById("StreamsCnt").value = streamsCnt++ + ":" + command;    
-      document.getElementById("StreamsMilliDelta").value = t1 - t0;
+      if (command[0] =="{") {
+          var json_msg = JSON.parse(command);    	  
+          document.getElementById("ConnectionStatus").value = ((json_msg.status == 0) ? "OK:"  : "ERR[" + json_msg.status +"]:") + json_msg.message;              
+      }
+      document.getElementById("StreamsCnt").value = streamsCnt++;    
+      //document.getElementById("StreamsMilliDelta").value = t1 - t0;
       t0 = t1;
       t1 = performance.now();          
       wsCallback && wsCallback(command);
     }
-
     source.connect(this.node);
     this.node.connect(this.context.destination);   // if the script node is not connected to an output the "onaudioprocess" event is not triggered in chrome.
   };// End of the Recorder object definition
