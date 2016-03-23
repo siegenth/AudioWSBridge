@@ -99,27 +99,13 @@ function transmit(fullBuffer) {
 	console.log("TRANSMIT START");
 }
 
+
 /**
- * Convert the outbound audio data to ascii text, add a header to beginning of
- * each message. Receiving uses this to keep track of he Audio source coming in.
- * 
- * @param audioBlob
+ *  Convert 32 bit float to a 16 bit int. Values should be between  
+ *  1 and -1, only send the the decimal portion as a 16bit value
+ *  encoded.  
  */
-
-function transmitAudioBytes(audioBlob) {
-	var myReader = new FileReaderSync(); // FIX - Firefox does not support
-											// FileReader()
-	var arrayBuffer = myReader.readAsArrayBuffer(audioBlob);
-	var binaryData = buildMessage("DATA", "");
-	var view = new DataView(arrayBuffer);
-	var viewLen = view.byteLength;
-	for (var i = 0; i < viewLen; binaryData += ("00" + view.getUint8(i++)
-			.toString(16)).substr(-2).toUpperCase())
-		;
-	console.log("socketSend@main " + binaryData.length);
-	wsSnd.send(binaryData);
-}
-
+//
 function floatTo16BitPCM(output, offset, input) {
 	for (var i = 0; i < input.length; i++, offset += 2) {
 		var s = Math.max(-1, Math.min(1, input[i]));
@@ -147,6 +133,25 @@ function mergeFloat(recBuffers, recLength) {
 	result.set(recBuffers, 0);
 	return result;
 }
+/**
+ * Convert the outbound audio data to ascii text, add a header to beginning of
+ * each message. Receiving uses this to keep track of he Audio source coming in.
+ * 
+ * @param audioBlob
+ */
+function transmitAudioHexBytes(audioBlob) {
+	var myReader = new FileReaderSync(); // FIX - Firefox does not support
+											// FileReader()
+	var arrayBuffer = myReader.readAsArrayBuffer(audioBlob);
+	var binaryHexData = buildMessage("DATA", "");
+	var view = new DataView(arrayBuffer);
+	var viewLen = view.byteLength;
+	for (var i = 0; i < viewLen; binaryHexData += ("00" + view.getUint8(i++)
+			.toString(16)).substr(-2).toUpperCase())
+		;
+	console.log("socketSend@main " + binaryHexData.length);
+	wsSnd.send(binaryHexData);
+}
 
 //
 // Prep chunk for transmission and send. 
@@ -156,6 +161,6 @@ function transmitChunk(chunkBuffer) {
 	var audioBlob = new Blob([ dataview ], {
 		type : audioType
 	});
-	transmitAudioBytes(audioBlob);
+	transmitAudioHexBytes(audioBlob);
 	postMessage("next-transmitChunk");
 }

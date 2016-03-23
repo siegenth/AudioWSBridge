@@ -134,6 +134,7 @@ public class AnnotatedEndpoint implements BackwardResponse {
     // Using the OnClose annotation will cause this method to be called when the WebSocket Session is being closed.
     @OnClose
     public void onClose(Session session, CloseReason reason) {
+    	System.out.println("onClose@annotatedEndpoint:" + reason.getReasonPhrase());
         // no clean up is needed here for this sample
     }
 
