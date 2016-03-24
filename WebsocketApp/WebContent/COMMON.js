@@ -8,7 +8,10 @@
 //var COMMON_FIXIP="172.16.49.153";
 //var COMMON_FIXIP="172.16.49.154";
 // external - public
-var COMMON_FIXIP="169.45.142.165"; // .32
+//var COMMON_FIXIP="169.45.142.241"; // - cloud
+var COMMON_FIXIP="172.16.49.154"; // - VM
+//var COMMON_FIXIP="169.45.142.165"; // .32
+
 
 //TextCell["\"10.121.213.141\"->\"169.53.61.15\""]
 //"10.142.241.32"->"169.45.142.165"

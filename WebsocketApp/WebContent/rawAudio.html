@@ -1,0 +1,238 @@
+<!DOCTYPE HTML>
+<html>
+<!---
+# Copyright IBM Corp. 2011, 2012, 2013, 2014
+# Distribute this code under MIT License
+
+  This receives message from the server WebSockets 
+  and writes it to the text area and to 
+  a graph.
+
+    This is part of an example, learn by using...
+    mags
+----->
+<head>
+    <title>Raw Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="support.css" type="text/css"></link>
+    <script type="text/javascript" src="COMMON.js"></script>    
+    <script type="text/javascript" src="jsResources/smoothie.js"></script>
+
+<script type="text/javascript">
+// Some variables....
+var ws = null;
+var RenderData = {};
+// this table needs to correspond to the html table below.
+var ColorW = new Array('#FF0000','#FFFF00','#00FF00',
+                       '#0000FF','#CC3300','#00FFFF',
+                       '#FF00FF','#0F770F','#FFFFFF');
+var wCnt = 0;
+var smoothieSml;
+var smoothieMed;
+var smoothieBig;
+
+// User has selected the link, they want to see the data from server. 
+//    - connect up to server
+//    - data flows in via the onmessage.
+var t1 = 0;
+var t0 = 0;
+var buildCommandRequest; 
+function StartWebSocket()
+{
+    if ("WebSocket" in window)
+  {
+          // Let us open a web socket
+     var serverNode = (document.getElementById("formWS").value).trim();
+     ws = new WebSocket("ws://" + serverNode + "/AudioWS/Backward");	 
+     ws.onopen = function()
+     {
+     // Web Socket is connected, send data using send()        
+        var buildUri =  document.getElementById("formWS_Streams").value;
+	    // Yes the hashes are significant
+	    buildCommandRequest = "#MONITOR#START#" + buildUri;
+	    var commandProxy = document.getElementById("commandToProxy");
+	    commandProxy.innerHTML = "<b>"+ buildCommandRequest+"</b>";
+        ws.send(buildCommandRequest);
+     };
+     ws.onmessage = function (evt)
+     { 
+     	var controlOut = document.getElementById("control");
+        var received_msg = evt.data;
+        if (received_msg[0] != "{") {
+        	var buildMessage = "UNKNOWN received_msg:" + received_msg; 
+	        console.log(buildMessage);
+			controlOut.innerHTML = buildMessage;
+	        return;   
+        }
+        
+        var json_msg = JSON.parse(received_msg);
+        if ('control' in json_msg)  {
+	    	controlOut.innerHTML =  json_msg.control.status + ":" + json_msg.control.value;
+        } else {
+
+		    var tuple = json_msg.tuples[0].tuple;
+            // write text into document
+	    	document.getElementById("DataJson").innerHTML = JSON.stringify(tuple);
+	    	// get timing between packets
+	    	var t1 = performance.now();
+	    	document.getElementById("TimerID").innerHTML = t1 - t0;
+	    	t0 = t1;
+
+            //console.log(tuple.id + "#" + tuple.signalData.length + " " + tuple.signalData.slice(0,20));
+			// New entry ? 
+	        if (!RenderData.hasOwnProperty(tuple.id) ) {
+				RenderData[tuple.id] = new Object();
+				RenderData[tuple.id].connectsSml = new TimeSeries();
+
+				RenderData[tuple.id].index = wCnt % ColorW.length;
+				smoothieSml.addTimeSeries(RenderData[tuple.id].connectsSml, 
+	                          { strokeStyle:ColorW[RenderData[tuple.id].index] });
+				wCnt++;
+        	}
+            // write into graph        	
+	    	var idxStr = (RenderData[tuple.id].index).toString();
+		    document.getElementById("devId" + idxStr).innerHTML = tuple.id +"<br>";
+		    // Update the graphs
+            RenderData[tuple.id].connectsSml.append(new Date().getTime(), tuple.sample);
+
+            
+		}
+     };
+     ws.onclose = function()  { 
+        // websocket is closed.
+        alert("Connection is closed..."); 
+        ws = null;
+     };
+  }
+  else
+  {
+     // The browser doesn't support WebSocket
+      alert("WebSocket NOT supported by your Browser!");
+  }
+}
+//
+// Invoked when the window is loaded.....
+function startUp() {
+    // Buld the WS uri, get the IP address to build. 
+    var ip = location.host;
+
+    document.getElementById("formWS").value = location.host;
+    document.getElementById("formWS_Streams").value = "ws://" + COMMON_FIXIP + ":8088";  
+
+    smoothieSml = new SmoothieChart({maxValue:0.5,minValue:-0.5});
+    smoothieSml.streamTo(document.getElementById("mycanvasSmall"));
+}
+
+window.onload = function() {startUp();}
+</script>
+
+</head>
+<body>
+<h2>Connect to Streams via Proxy</h2>
+<p>Stripped down example.
+</p>
+<p>The Streams WebSocketSink specifies which port it will wait for connections on. This 
+   WebPage requests a connection to the port via a proxy. The proxy is running
+   on Liberty. 
+<p>
+   <p>URI for proxy ws://<input type="text" id="formWS">/AudioWS/Backward</p>
+   <p>URI for proxy to streams <input type="text" size="40" id="formWS_Streams"></p>   
+<p>
+<div id="sse">
+ 
+   <a class="button green" href="javascript:StartWebSocket()" >Send request to proxy 'Forward Data'</a>
+ 
+</div>
+<h2>Messages Received from Server on WebSocket interface:</h2>
+<p>After pushing the button above tuples flowing into the WebSocketServerSink operator 
+   of the Stream's application are transmitted via WebSockets and displayed below. The 
+   .wav audio that we receive on Streams is run through an aggregation and sent back. 
+   Get the communication stable. 
+   
+</p>
+Command message (tell proxy who to connect to):
+<span id="commandToProxy"></span>
+
+<h3>Control message (from proxy)</h3>
+<span id="control"></span>
+<p>
+<hr>
+
+<h4>Standard message: delta (millisecond) : <span id="TimerID"></span></h4>
+<p>
+<b>DATA</b>: <span id="DataJson"></span>
+</p>
+<hr>
+Plot the data using:<a href="http://smoothiecharts.org">smoothiecharts</a> 
+<br>
+    <canvas id="mycanvasSmall" width="300" height="Med"></canvas>
+<br>
+
+
+
+<table>
+<tr>
+   <td bgcolor="#FF0000">
+    ID:<span id="devId0"></span>
+    <span id="nameSmall0"></span>:<span id="rangeSmall0"></span>
+    <span id="nameMed0"></span>:<span id="rangeMed0"></span>
+    <span id="nameBig0"></span>:<span id="rangeBig0"></span>
+   </td>   
+   <td bgcolor="#FFFF00">
+    ID:<span id="devId1"></span>
+    <span id="nameSmall1"></span>:<span id="rangeSmall1"></span>
+    <span id="nameMed1"></span>:<span id="rangeMed1"></span>
+    <span id="nameBig1"></span>:<span id="rangeBig1"></span>
+   </td>   
+   <td bgcolor="#00FF00">
+    ID:<span id="devId2"></span>
+    <span id="nameSmall2"></span>:<span id="rangeSmall2"></span>
+    <span id="nameMed2"></span>:<span id="rangeMed2"></span>
+    <span id="nameBig2"></span>:<span id="rangeBig2"></span>
+   </td>
+</tr>
+<tr>
+   <td bgcolor="#0000FF">
+    ID:<span id="devId3"></span>
+    <span id="nameSmall3"></span>:<span id="rangeSmall3"></span>
+    <span id="nameMed3"></span>:<span id="rangeMed3"></span>
+    <span id="nameBig3"></span>:<span id="rangeBig3"></span>
+   </td>   
+   <td bgcolor="#CC3300">
+    ID:<span id="devId4"></span>
+    <span id="nameSmall4"></span>:<span id="rangeSmall4"></span>
+    <span id="nameMed4"></span>:<span id="rangeMed4"></span>
+    <span id="nameBig4"></span>:<span id="rangeBig4"></span>
+   </td>   
+   <td bgcolor="#00FFFF">
+    ID:<span id="devId5"></span>
+    <span id="nameSmall5"></span>:<span id="rangeSmall5"></span>
+    <span id="nameMed5"></span>:<span id="rangeMed5"></span>
+    <span id="nameBig5"></span>:<span id="rangeBig5"></span>
+   </td>
+</tr>
+<tr>
+   <td bgcolor="#FF00FF">
+    ID:<span id="devId6"></span>
+    <span id="nameSmall6"></span>:<span id="rangeSmall6"></span>
+    <span id="nameMed6"></span>:<span id="rangeMed6"></span>
+    <span id="nameBig6"></span>:<span id="rangeBig6"></span>
+   </td>   
+   <td bgcolor="#0F770F">
+    ID:<span id="devId7"></span>
+    <span id="nameSmall7"></span>:<span id="rangeSmall7"></span>
+    <span id="nameMed7"></span>:<span id="rangeMed7"></span>
+    <span id="nameBig7"></span>:<span id="rangeBig7"></span>
+   </td>   
+   <td bgcolor="#FFFFFF">
+    ID:<span id="devId8"></span>
+    <span id="nameSmall8"></span>:<span id="rangeSmall8"></span>
+    <span id="8"></span>:<span id="rangeMed8"></span>
+    <span id="nameBig8"></span>:<span id="rangeBig8"></span>
+   </td>
+</tr>
+<table>
+</body>
+</html>
+
